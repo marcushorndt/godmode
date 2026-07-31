@@ -13,7 +13,10 @@
 
 import { materialize } from '../core/contracts.js';
 import {
+  extendParams,
+  extensionSlots,
   percentageRampPattern,
+  totalSessionCount,
   type PercentageRampParams,
 } from '../core/patterns/percentageRamp.js';
 import { DEFAULT_VOLUME_REST_PARAMS, volumeDerivedRestPolicy } from '../core/policies/rest.js';
@@ -212,6 +215,119 @@ export function buildNextBlock(input: {
     ...(test === undefined ? {} : { performanceTest: test }),
     endedAt: nowIso(),
   };
+}
+
+// ── Extending a plan ────────────────────────────────────────────────────────────
+
+/** What an extension would add, before anything is sent. */
+export interface PlanExtension {
+  /** The same challenge with its `patternParams` carrying the new `extraSessions`. */
+  challenge: ChallengeRecord;
+  /** ONLY the appended slots. Nothing that already exists appears here. */
+  slots: PlanSlotRecord[];
+  /** Session numbers the extension adds, for the confirmation the user is shown. */
+  firstOrdinal: number;
+}
+
+/**
+ * Why a plan cannot be extended, because the two cases deserve different treatment.
+ *
+ * `unsupported` is not a fault — a pattern that has no notion of appending sessions simply does
+ * not offer the button, and saying so would be noise. `inconsistent` is a fault: the plan on
+ * screen does not match what its own parameters describe, and the owner is owed the sentence.
+ */
+export type PlanExtensionRefusal = 'unsupported' | 'inconsistent';
+
+export class PlanExtensionError extends Error {
+  readonly reason: PlanExtensionRefusal;
+
+  constructor(reason: PlanExtensionRefusal, message: string) {
+    super(message);
+    this.name = 'PlanExtensionError';
+    this.reason = reason;
+  }
+}
+
+/**
+ * Append another block of sessions to a plan that has run out, without touching a single one of
+ * the sessions already in it.
+ *
+ * The trap this function exists to avoid: `weeks` is not incremented. `N = weeks * daysPerWeek`
+ * is the denominator of the base ramp's exponent, so raising it would recompute `M(n)` for every
+ * session — silently rewriting prescriptions the athlete has already performed, on slots that
+ * workouts reference. Instead `extraSessions` grows and `N` is frozen, which is why the existing
+ * slots come back byte-identical (`percentageRamp.test.ts`, "an extension leaves every existing
+ * slot untouched").
+ *
+ * IMP-07: the new sessions are computed from `patternParams` alone. No workout is read, here or
+ * anywhere below this call.
+ */
+export function buildExtension(input: {
+  challenge: ChallengeRecord;
+  /** The challenge's live slots — what `slotsFor` returns. Used to check, never to derive. */
+  existingSlots: readonly PlanSlotRecord[];
+  /** Sessions to append. Defaults to one week of them. */
+  sessions?: number;
+}): PlanExtension {
+  const { challenge } = input;
+  if (challenge.status !== 'active') {
+    throw new PlanExtensionError(
+      'unsupported',
+      'This workout has ended, so its plan cannot be extended.',
+    );
+  }
+  if (challenge.patternId !== percentageRampPattern.id) {
+    throw new PlanExtensionError(
+      'unsupported',
+      `Only a ${percentageRampPattern.id} plan can be extended; this one is ` +
+        `"${challenge.patternId}".`,
+    );
+  }
+
+  const params = challenge.patternParams as unknown as PercentageRampParams;
+  const before = totalSessionCount(params);
+  assertPlanIsWhole(input.existingSlots, before);
+
+  const count = input.sessions ?? params.daysPerWeek;
+  const nextParams = extendParams(params, count);
+  const generatedAt = nowIso();
+  const specs = extensionSlots(params, count);
+
+  return {
+    challenge: {
+      ...challenge,
+      patternParams: { ...nextParams } as unknown as Record<string, unknown>,
+    },
+    slots: specs.map((spec) => specToRecord(spec, challenge.id, generatedAt)),
+    firstOrdinal: before + 1,
+  };
+}
+
+/**
+ * Every session the params claim exists, exactly once.
+ *
+ * Appending to a plan with a hole in it would put the new sessions after a gap the user would
+ * never reach, and appending to one that already has more slots than its params describe would
+ * collide with them. Both are refused before anything is composed, and the server checks the
+ * same thing again against what it actually holds — this side cannot see another device.
+ */
+function assertPlanIsWhole(slots: readonly PlanSlotRecord[], expected: number): void {
+  const ordinals = new Set(slots.map((s) => s.ordinal));
+  if (ordinals.size !== slots.length || slots.length !== expected) {
+    throw new PlanExtensionError(
+      'inconsistent',
+      `This plan should hold ${String(expected)} sessions but holds ${String(slots.length)}. ` +
+        'Nothing has been changed.',
+    );
+  }
+  for (let ordinal = 1; ordinal <= expected; ordinal += 1) {
+    if (!ordinals.has(ordinal)) {
+      throw new PlanExtensionError(
+        'inconsistent',
+        `This plan is missing session ${String(ordinal)}. Nothing has been changed.`,
+      );
+    }
+  }
 }
 
 // ── Workouts ────────────────────────────────────────────────────────────────────
