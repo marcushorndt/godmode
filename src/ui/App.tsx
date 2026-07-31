@@ -26,6 +26,7 @@ import {
   ApiError,
   closeSession,
   endChallenge as endChallengeCommand,
+  extendChallenge as extendChallengeCommand,
   getSnapshot,
   patchSettings,
   postWorkout,
@@ -61,7 +62,14 @@ import {
 } from '../db/drafts.js';
 import { requestPersistentStorage } from '../db/local.js';
 import { enqueueWorkout, listOutbox, OutboxWriteError, unblockAll } from '../db/outbox.js';
-import { buildNextBlock, buildWorkout, newId } from '../db/records.js';
+import {
+  buildExtension,
+  buildNextBlock,
+  buildWorkout,
+  newId,
+  PlanExtensionError,
+  type PlanExtension,
+} from '../db/records.js';
 import type {
   ChallengeRecord,
   DatabaseConflict,
@@ -725,6 +733,46 @@ export function App() {
     [runCommand],
   );
 
+  /**
+   * What "Add another week" would append.
+   *
+   * Composed once, here, and the very records the user is shown are the records that get sent —
+   * so the three totals on screen cannot be a different calculation from the one that lands.
+   * Built from the challenge's `patternParams` alone: no workout is read, because a prescription
+   * must never be derived from what was performed (IMP-07).
+   *
+   * A pattern with no notion of appending sessions yields nothing and says nothing — there is no
+   * fault to report, and "Continue with a new block" is still there. A plan whose slots do not
+   * account for every session its own parameters describe is a different matter: Codex noted that
+   * swallowing that one leaves the owner staring at a missing button, so it carries its reason to
+   * the screen.
+   */
+  const extension = useMemo((): { plan?: PlanExtension; problem?: string } => {
+    if (!state?.challenge || state.currentSlot !== undefined) return {};
+    try {
+      return { plan: buildExtension({ challenge: state.challenge, existingSlots: state.slots }) };
+    } catch (cause) {
+      return cause instanceof PlanExtensionError && cause.reason === 'inconsistent'
+        ? { problem: cause.message }
+        : {};
+    }
+  }, [state]);
+
+  const extendPlan = useCallback(async () => {
+    const plan = extension.plan;
+    if (plan === undefined) return;
+    setMessage(null);
+    await runCommand(
+      (revision) =>
+        extendChallengeCommand(plan.challenge.id, {
+          expectedRevision: revision,
+          challenge: plan.challenge,
+          slots: plan.slots,
+        }),
+      `Another ${String(plan.slots.length)} sessions added. Your history is untouched.`,
+    );
+  }, [extension, runCommand]);
+
   const signOut = useCallback(async () => {
     try {
       await closeSession();
@@ -1087,6 +1135,13 @@ export function App() {
             slotsAdvanced={state.slots.filter((s) => s.status === 'completed').length}
             slotsTotal={state.slots.length}
             lastMessage={message}
+            extension={extension.plan?.slots.map((s) => ({
+              ordinal: s.ordinal,
+              week: s.week,
+              day: s.day,
+              targetTotal: s.targetTotal,
+            }))}
+            extensionProblem={extension.problem}
             onDismissMessage={() => setMessage(null)}
             onStart={(targets, adjustment) => {
               // An unfinished session for this very day is not something to start over
@@ -1098,6 +1153,7 @@ export function App() {
               void startRun(targets, adjustment);
             }}
             onAdvanceManually={() => void advanceManually()}
+            onExtend={() => void extendPlan()}
             onContinueChain={() => setView({ kind: 'continue' })}
             onShare={() => setShareOpen(true)}
           />

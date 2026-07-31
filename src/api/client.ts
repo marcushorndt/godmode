@@ -268,6 +268,30 @@ export function endChallenge(
   });
 }
 
+/**
+ * Append more sessions to the plan that is already running.
+ *
+ * Deliberately NOT `startNextBlock`: nothing ends, no baseline is retested, and the challenge
+ * keeps its identity — so every workout already recorded against it stays exactly where it is.
+ * The command carries the challenge only so its `patternParams` can record the extension; the
+ * server refuses it if anything else about the challenge has moved.
+ */
+export function extendChallenge(
+  challengeId: string,
+  body: {
+    expectedRevision: number;
+    challenge: ChallengeRecord;
+    slots: readonly PlanSlotRecord[];
+  },
+): Promise<CommandResult & { appended: number }> {
+  return request({
+    method: 'POST',
+    path: `/challenges/${encodeURIComponent(challengeId)}/extend`,
+    body,
+    expect: [201],
+  });
+}
+
 export function startNextBlock(body: {
   expectedRevision: number;
   previousChallengeId: string;

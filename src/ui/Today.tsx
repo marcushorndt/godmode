@@ -12,6 +12,14 @@ import type { AdjustmentType } from '../core/types.js';
 import type { ChallengeRecord, PlanSlotRecord } from '../db/schema.js';
 import { Banner, Button, Card, NumberField, SetRow, Stat } from './kit.js';
 
+/** One session an extension would add, as the confirmation shows it. */
+export interface ExtensionSession {
+  week: number | undefined;
+  day: number | undefined;
+  ordinal: number;
+  targetTotal: number;
+}
+
 export interface TodayProps {
   challenge: ChallengeRecord;
   slot: PlanSlotRecord | undefined;
@@ -20,8 +28,18 @@ export interface TodayProps {
   slotsAdvanced: number;
   slotsTotal: number;
   lastMessage: string | null;
+  /**
+   * The sessions "Add another week" would append, already computed.
+   *
+   * Undefined when this plan cannot be extended — a pattern that does not support it, or a plan
+   * the app cannot account for. The button is then simply not offered.
+   */
+  extension?: ExtensionSession[] | undefined;
+  /** Why another week cannot be offered, when that is a fault worth naming rather than silence. */
+  extensionProblem?: string | undefined;
   onStart: (effectiveTargets: number[], adjustment: AdjustmentType) => void;
   onAdvanceManually: () => void;
+  onExtend: () => void;
   onContinueChain: () => void;
   onDismissMessage: () => void;
   /** Opens the export sheet. The moment a session lands is when someone wants to post it. */
@@ -36,8 +54,11 @@ export function Today({
   slotsAdvanced,
   slotsTotal,
   lastMessage,
+  extension,
+  extensionProblem,
   onStart,
   onAdvanceManually,
+  onExtend,
   onContinueChain,
   onDismissMessage,
   onShare,
@@ -52,14 +73,51 @@ export function Today({
     return (
       <div className="flex flex-col gap-4 lg:max-w-2xl">
         <Card>
-          <h2 className="text-xl font-semibold text-slate-100">Programme complete</h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-300">
-            Every day in this plan is done. Test your max again to see where you stand, then
-            pick a new target.
-          </p>
-          <Button className="mt-4 w-full" onClick={onContinueChain}>
+          <h2 className="text-xl font-semibold text-slate-100">Every day in this plan is done</h2>
+
+          {/*
+            The numbers before the button, deliberately. "Add another week" is a write against a
+            plan with months of history behind it, and the honest way to ask for it is to show
+            exactly what it will add — three sessions and what each one asks for — rather than a
+            paragraph describing them.
+          */}
+          {extension && extension.length > 0 ? (
+            <>
+              <ul className="mt-4 flex flex-col gap-1.5">
+                {extension.map((session) => (
+                  <li
+                    key={session.ordinal}
+                    className="flex items-baseline justify-between gap-3 rounded-xl bg-[#0f1728] px-3 py-2"
+                  >
+                    <span className="text-sm text-slate-300">
+                      {session.week !== undefined && session.day !== undefined
+                        ? `Week ${session.week} · Day ${session.day}`
+                        : `Session ${session.ordinal}`}
+                    </span>
+                    <span className="tnum text-sm font-semibold text-teal-300">
+                      {session.targetTotal} reps
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Button className="mt-4 w-full" onClick={onExtend}>
+                Add another week
+              </Button>
+            </>
+          ) : null}
+
+          {extensionProblem !== undefined ? (
+            <p className="mt-4 text-sm leading-relaxed text-amber-300">
+              Another week cannot be added: {extensionProblem}
+            </p>
+          ) : null}
+
+          <Button variant="ghost" className="mt-2 w-full" onClick={onContinueChain}>
             Continue with a new block
           </Button>
+          <p className="mt-2 text-xs leading-relaxed text-slate-400">
+            A new block retests your max and starts again from week 1.
+          </p>
         </Card>
       </div>
     );
