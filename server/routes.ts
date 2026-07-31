@@ -607,6 +607,93 @@ function startNextBlock(ctx: ApiContext, body: Record<string, unknown>): Command
 }
 
 /**
+ * Append more sessions to a plan that has run out. Nothing else.
+ *
+ * This is the one command that writes to a challenge that already has history behind it, so it
+ * is bounded from every side rather than trusted:
+ *
+ *   - **Append only.** Slots go through `insertOrVerify`, which inserts an absent id, no-ops an
+ *     identical one and aborts on a different one. There is no UPDATE and no DELETE of a slot on
+ *     this path at all, so a session the owner has already performed cannot be altered,
+ *     reordered or invalidated by it.
+ *   - **Only `patternParams` may move on the challenge.** Everything else must arrive
+ *     byte-identical to what is stored. Without that check this endpoint would be a way to
+ *     rewrite a baseline, a goal or a status while calling it an extension — and changing
+ *     `baselineMax`, `goalMax`, `weeks` or `daysPerWeek` is exactly what would re-price the
+ *     sessions already performed.
+ *   - **The existing plan must be whole.** Its live slots must be ordinals 1..M with no gaps and
+ *     no duplicates, and the arriving slots must be exactly M+1..M+k in order. A client working
+ *     from a stale snapshot therefore cannot append over the top of a block another device
+ *     already added; it gets a 409 and the fresh state.
+ *   - **An ended challenge is refused**, before any write.
+ *
+ * One transaction, one revision bump. The revision check is inside it, as everywhere else.
+ */
+function extendChallenge(
+  ctx: ApiContext,
+  challengeId: string,
+  body: Record<string, unknown>,
+): CommandResult {
+  requireKeys(
+    body,
+    ['expectedRevision', 'challenge', 'slots'],
+    'POST /api/challenges/:id/extend',
+  );
+  const expected = requireExpectedRevision(body);
+  const challenge = validateRecord<ChallengeRecord>(
+    body['challenge'],
+    CHALLENGE_FIELDS,
+    'challenge',
+  );
+  const slots = requireArray(body, 'slots', 'POST /api/challenges/:id/extend').map((slot, index) =>
+    validateRecord<PlanSlotRecord>(slot, PLAN_SLOT_FIELDS, `slots[${String(index)}]`),
+  );
+
+  if (challenge.id !== challengeId) {
+    throw new HttpError(
+      422,
+      'challenge_mismatch',
+      `The body describes challenge "${challenge.id}" but the route names "${challengeId}".`,
+    );
+  }
+  assertSlotsBelongTo(slots, challenge);
+  assertFreshPlan(slots);
+  if (challenge.status !== 'active') {
+    throw new HttpError(422, 'challenge_not_active', 'An extended challenge stays active.');
+  }
+  if (slots.length === 0) {
+    throw new HttpError(
+      422,
+      'nothing_to_append',
+      'An extension must add at least one session. Nothing has been changed.',
+    );
+  }
+
+  return inWriteTransaction(ctx.db, (): CommandResult => {
+    checkRevision(ctx.db, expected);
+    const stored = findRecord(ctx.db, CHALLENGES, challengeId);
+    if (stored === undefined) {
+      throw new HttpError(404, 'unknown_challenge', `No challenge "${challengeId}" exists.`);
+    }
+    if (stored.status === 'ended') {
+      throw new HttpError(
+        409,
+        'already_ended',
+        `Challenge "${challengeId}" ended at ${stored.endedAt ?? 'an unrecorded time'} and ` +
+          'cannot be extended. Nothing has been changed.',
+      );
+    }
+    assertOnlyTheExtensionMoved(stored, challenge, slots.length);
+    assertAppendsToFinishedPlan(ctx.db, challengeId, slots);
+
+    updateRecord(ctx.db, CHALLENGES, challenge);
+    for (const slot of slots) insertOrVerify(ctx.db, PLAN_SLOTS, slot);
+    bumpRevision(ctx.db, isoNow(ctx));
+    return { challengeId, appended: slots.length, snapshot: readSnapshot(ctx.db) };
+  });
+}
+
+/**
  * `repo.ts:201` — a whole import, or nothing.
  *
  * Its workouts may legitimately carry no `planSlotId` and their own `attemptNo`: a session
@@ -741,6 +828,192 @@ function assertFreshPlan(slots: readonly PlanSlotRecord[]): void {
           'part of creating a challenge.',
       );
     }
+  }
+}
+
+/**
+ * The two knobs an extension is allowed to turn. Everything else in `patternParams` is frozen.
+ *
+ * `patternParams` is opaque to this server — it never interprets the blob — but "opaque" cannot
+ * mean "replaceable", because the fields inside it are what a plan regenerates from. Naming the
+ * two extension knobs is the smallest statement that keeps the rest immutable without teaching
+ * this file what a percentage ramp is.
+ */
+const EXTENSION_PARAM_KEYS = ['extraSessions', 'extensionDamping'];
+
+/**
+ * The extension may move the two extension knobs, and nothing else anywhere.
+ *
+ * Codex found the first draft of this check comparing challenges with `patternParams` blanked
+ * out on both sides, which made the endpoint a way to rewrite `baselineMax`, `goalMax`, `weeks`,
+ * `daysPerWeek` or the coefficients under the name of an extension. Those are exactly the
+ * parameters a plan regenerates from: changing any of them would mean the challenge no longer
+ * describes the sessions the owner has already performed — the historical rows would still be
+ * there, but they would no longer be reproducible from the record that claims to have produced
+ * them. So the comparison is now field by field.
+ *
+ * Compared canonically, so a re-serialised copy with its keys in a different order is not
+ * reported as a change.
+ *
+ * What this deliberately does NOT do is regenerate the arriving slots and compare them. Plans
+ * are composed by the pure generator on the client and validated here — that is the existing
+ * contract for `POST /api/challenges` and `/next-block` (see `startNextBlock` above), and this
+ * command trusts the prescriptions it is handed exactly as much as those two do. The difference
+ * that matters, and the one closed here, is that this command writes to a challenge that already
+ * has history behind it.
+ */
+function assertOnlyTheExtensionMoved(
+  stored: ChallengeRecord,
+  submitted: ChallengeRecord,
+  appended: number,
+): void {
+  const withoutParams = (record: ChallengeRecord): ChallengeRecord => ({
+    ...record,
+    patternParams: {},
+  });
+  if (!canonicallyEqual(withoutParams(stored), withoutParams(submitted))) {
+    throw new HttpError(
+      409,
+      'challenge_changed',
+      `Extending challenge "${stored.id}" may only record the extension, and this command ` +
+        'changes more than that. Nothing has been changed.',
+    );
+  }
+
+  const frozen = (params: Record<string, unknown>): Record<string, unknown> =>
+    Object.fromEntries(
+      Object.entries(params).filter(([key]) => !EXTENSION_PARAM_KEYS.includes(key)),
+    );
+  if (!canonicallyEqual(frozen(stored.patternParams), frozen(submitted.patternParams))) {
+    throw new HttpError(
+      409,
+      'pattern_params_changed',
+      `Extending challenge "${stored.id}" may not change how its plan is generated — only how ` +
+        'many sessions it runs for. Nothing has been changed.',
+    );
+  }
+
+  const before = extraSessionsOf(stored, 'stored');
+  const after = extraSessionsOf(submitted, 'submitted');
+  if (after !== before + appended) {
+    throw new HttpError(
+      409,
+      'extension_not_recorded',
+      `This command appends ${String(appended)} sessions but records ${String(after - before)}. ` +
+        'The two must agree or the plan could not be regenerated from its own parameters. ' +
+        'Nothing has been changed.',
+    );
+  }
+
+  // Damping is frozen the moment it is first written down. A later change would re-price every
+  // appended session, including ones already performed.
+  const dampingBefore = stored.patternParams['extensionDamping'];
+  const dampingAfter = submitted.patternParams['extensionDamping'];
+  if (dampingBefore !== undefined && !canonicallyEqual(dampingBefore, dampingAfter)) {
+    throw new HttpError(
+      409,
+      'pattern_params_changed',
+      `Challenge "${stored.id}" already extends at a fixed rate, and this command changes it. ` +
+        'Nothing has been changed.',
+    );
+  }
+  if (typeof dampingAfter !== 'number' || !Number.isFinite(dampingAfter) || dampingAfter < 0) {
+    throw new HttpError(
+      422,
+      'invalid_extension',
+      'An extension must record the rate it climbs at as a finite, non-negative number.',
+    );
+  }
+}
+
+/** `extraSessions`, defaulting to none. A value that is not a whole count is a corrupt record. */
+function extraSessionsOf(challenge: ChallengeRecord, which: string): number {
+  const value = challenge.patternParams['extraSessions'];
+  if (value === undefined) return 0;
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
+    throw new HttpError(
+      422,
+      'invalid_extension',
+      `The ${which} challenge records extraSessions as something that is not a whole count of ` +
+        'sessions. Nothing has been changed.',
+    );
+  }
+  return value;
+}
+
+/**
+ * The plan being appended to is whole, is finished, and the arrival continues it exactly.
+ *
+ * `superseded` and `cancelled` slots are excluded because they are not part of the live plan —
+ * a superseded slot shares its ordinal with the one that replaced it, so counting it would
+ * report a duplicate that is not one.
+ *
+ * "Finished" is checked here rather than left to the client. Codex pointed out that the UI's
+ * guard — the button only appears when there is no current slot — is a property of one screen,
+ * not of the command; a plan with a day still to do would otherwise gain a week the owner has
+ * to work through *after* the day he is stuck on, quietly moving the finish line while he was
+ * looking at something else.
+ */
+function assertAppendsToFinishedPlan(
+  db: DatabaseSync,
+  challengeId: string,
+  arriving: readonly PlanSlotRecord[],
+): void {
+  const live = listRecords(db, PLAN_SLOTS, 'challenge_id, ordinal, id').filter(
+    (slot) =>
+      slot.challengeId === challengeId &&
+      slot.status !== 'superseded' &&
+      slot.status !== 'cancelled',
+  );
+
+  const ordinals = new Set(live.map((slot) => slot.ordinal));
+  if (ordinals.size !== live.length) {
+    throw new HttpError(
+      409,
+      'plan_not_contiguous',
+      `Challenge "${challengeId}" has two live slots with the same session number. Nothing has ` +
+        'been changed.',
+    );
+  }
+  for (let ordinal = 1; ordinal <= live.length; ordinal += 1) {
+    if (!ordinals.has(ordinal)) {
+      throw new HttpError(
+        409,
+        'plan_not_contiguous',
+        `Challenge "${challengeId}" is missing session ${String(ordinal)}, so there is no end to ` +
+          'append to. Nothing has been changed.',
+      );
+    }
+  }
+
+  // Exactly the next block, in order. Anything else — a gap, a repeat, a slot that lands on top
+  // of a session another device already added — is refused before a single row is written.
+  //
+  // Checked before the finished-ness rule below, and the order is for the message rather than
+  // for safety: a command composed against a plan that has since gained a week fails both, and
+  // "another device extended this" is the one that tells the owner what actually happened.
+  arriving.forEach((slot, index) => {
+    const expected = live.length + index + 1;
+    if (slot.ordinal !== expected) {
+      throw new HttpError(
+        409,
+        'plan_not_contiguous',
+        `This extension expects to add session ${String(expected)} but slot "${slot.id}" claims ` +
+          `session ${String(slot.ordinal)}. The plan may have been extended on another device. ` +
+          'Nothing has been changed.',
+      );
+    }
+  });
+
+  const unfinished = live.find((slot) => slot.status !== 'completed');
+  if (unfinished !== undefined) {
+    throw new HttpError(
+      409,
+      'plan_not_finished',
+      `Session ${String(unfinished.ordinal)} of challenge "${challengeId}" is still ` +
+        `"${unfinished.status}". A plan gains another week when it runs out, not before. ` +
+        'Nothing has been changed.',
+    );
   }
 }
 
@@ -947,6 +1220,11 @@ export async function handleApi(
         if (method !== 'POST') throw methodNotAllowed(method, route);
         const body = asObject(await readJsonBody(req, MAX_BODY_BYTES), 'The request body');
         return sendJson(res, 200, endChallenge(ctx, rest[1] ?? '', body));
+      }
+      if (rest.length === 3 && rest[2] === 'extend') {
+        if (method !== 'POST') throw methodNotAllowed(method, route);
+        const body = asObject(await readJsonBody(req, MAX_BODY_BYTES), 'The request body');
+        return sendJson(res, 201, extendChallenge(ctx, rest[1] ?? '', body));
       }
       throw notFound(route);
     }

@@ -1061,6 +1061,336 @@ describe('POST /api/challenges/next-block', () => {
   });
 });
 
+describe('POST /api/challenges/:id/extend', () => {
+  /**
+   * The seeded challenge with the extension recorded — and ONLY the extension. The stored
+   * challenge's `patternParams` is `{}`, so anything else here is a change the server refuses.
+   */
+  function extended(extraSessions = 2): Record<string, unknown> {
+    return { ...challengeRecord(), patternParams: { extraSessions, extensionDamping: 0.5 } };
+  }
+  function appended(ordinal: number): Record<string, unknown> {
+    return { ...slotRecord(), id: `slot_${String(ordinal)}`, ordinal };
+  }
+
+  /** Seed, then perform the only session there is: a plan that has genuinely run out. */
+  async function finished(harness: Harness): Promise<{ client: Client; revision: number }> {
+    const { client } = await seeded(harness);
+    const logged = await client.send('POST', '/api/workouts', { workout: workoutCommand() });
+    expect(logged.status).toBe(201);
+    const snapshot = snapshotOf(logged);
+    expect(snapshot.planSlots[0]?.status).toBe('completed');
+    return { client, revision: snapshot.revision };
+  }
+
+  it('appends slots, records the extension and bumps the revision once', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(),
+      slots: [appended(2), appended(3)],
+    });
+    expect(reply.status).toBe(201);
+    expect(reply.body['appended']).toBe(2);
+
+    const snapshot = snapshotOf(reply);
+    expect(snapshot.revision).toBe(revision + 1);
+    expect(snapshot.planSlots.map((s) => s.ordinal)).toEqual([1, 2, 3]);
+    expect(snapshot.challenges[0]?.patternParams['extraSessions']).toBe(2);
+    // Still the same challenge, still active: nothing ended, nothing was superseded.
+    expect(snapshot.challenges).toHaveLength(1);
+    expect(snapshot.challenges[0]?.status).toBe('active');
+  });
+
+  it('never alters a slot that already exists, whatever state it is in', async () => {
+    const harness = await start();
+    const { client } = await seeded(harness);
+
+    // Perform the only session there is, so slot_1 is `completed` and a workout references it.
+    const logged = await client.send('POST', '/api/workouts', { workout: workoutCommand() });
+    expect(logged.status).toBe(201);
+    const before = snapshotOf(logged);
+    expect(before.planSlots[0]?.status).toBe('completed');
+
+    const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: before.revision,
+      challenge: extended(),
+      slots: [appended(2), appended(3)],
+    });
+    expect(reply.status).toBe(201);
+
+    const after = snapshotOf(reply);
+    expect(after.planSlots.find((s) => s.id === 'slot_1')).toEqual(before.planSlots[0]);
+    expect(after.workouts).toEqual(before.workouts);
+  });
+
+  it('extends twice, continuing from the end each time', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const first = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(2),
+      slots: [appended(2), appended(3)],
+    });
+    expect(first.status).toBe(201);
+
+    // The appended week has to be trained before another one can be added.
+    let latest = snapshotOf(first);
+    for (const ordinal of [2, 3]) {
+      const logged = await client.send('POST', '/api/workouts', {
+        workout: workoutCommand({ id: `wo_${String(ordinal)}`, planSlotId: `slot_${String(ordinal)}` }),
+      });
+      expect(logged.status).toBe(201);
+      latest = snapshotOf(logged);
+    }
+
+    const second = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: latest.revision,
+      challenge: extended(4),
+      slots: [appended(4), appended(5)],
+    });
+    expect(second.status).toBe(201);
+    const snapshot = snapshotOf(second);
+    expect(snapshot.planSlots.map((s) => s.ordinal)).toEqual([1, 2, 3, 4, 5]);
+    expect(snapshot.challenges[0]?.patternParams['extraSessions']).toBe(4);
+  });
+
+  it('409s a stale command with the fresh snapshot, and appends nothing', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(2),
+      slots: [appended(2), appended(3)],
+    });
+
+    const stale = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(4),
+      slots: [appended(4), appended(5)],
+    });
+    expect(stale.status).toBe(409);
+    expect(stale.body['error']).toBe('revision_conflict');
+    expect(snapshotOf(stale).planSlots).toHaveLength(3);
+  });
+
+  it('refuses to append over a block another device already added', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const first = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(2),
+      slots: [appended(2), appended(3)],
+    });
+
+    // Fresh revision, but the ordinals were composed against the plan as it was before.
+    const overlapping = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: snapshotOf(first).revision,
+      challenge: extended(4),
+      slots: [
+        { ...slotRecord(), id: 'slot_other_2', ordinal: 2 },
+        { ...slotRecord(), id: 'slot_other_3', ordinal: 3 },
+      ],
+    });
+    expect(overlapping.status).toBe(409);
+    expect(overlapping.body['error']).toBe('plan_not_contiguous');
+    expect(snapshotOf(overlapping).planSlots).toHaveLength(3);
+  });
+
+  it('refuses a gap between the plan and the block being appended', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(),
+      slots: [appended(3), appended(4)],
+    });
+    expect(reply.status).toBe(409);
+    expect(reply.body['error']).toBe('plan_not_contiguous');
+    expect(snapshotOf(reply).planSlots).toHaveLength(1);
+  });
+
+  it('refuses to change anything but the pattern params', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    for (const doctored of [
+      { baseline: { value: 99, source: 'user_entered', recordedAt: '2026-07-30T20:00:00.000Z' } },
+      { goalValue: 400 },
+      { chainId: 'a_different_chain' },
+      { startedAt: '2020-01-01T00:00:00.000Z' },
+    ]) {
+      const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+        expectedRevision: revision,
+        challenge: { ...extended(1), ...doctored },
+        slots: [appended(2)],
+      });
+      expect(reply.status).toBe(409);
+      expect(reply.body['error']).toBe('challenge_changed');
+      expect(snapshotOf(reply).planSlots).toHaveLength(1);
+    }
+  });
+
+  it('refuses to change how the plan is generated', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    // Codex round, 2026-07-31: the first draft blanked patternParams on both sides of the
+    // comparison, which made this endpoint a way to rewrite the ramp of a challenge that already
+    // had history — every one of these would have been accepted.
+    for (const params of [
+      { extraSessions: 1, extensionDamping: 0.5, baselineMax: 40 },
+      { extraSessions: 1, extensionDamping: 0.5, goalMax: 400 },
+      { extraSessions: 1, extensionDamping: 0.5, weeks: 7 },
+      { extraSessions: 1, extensionDamping: 0.5, daysPerWeek: 5 },
+      { extraSessions: 1, extensionDamping: 0.5, coefficients: [1, 1, 1] },
+    ]) {
+      const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+        expectedRevision: revision,
+        challenge: { ...challengeRecord(), patternParams: params },
+        slots: [appended(2)],
+      });
+      expect(reply.status).toBe(409);
+      expect(reply.body['error']).toBe('pattern_params_changed');
+      expect(snapshotOf(reply).planSlots).toHaveLength(1);
+    }
+  });
+
+  it('refuses an extension that does not record the sessions it appends', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    for (const extraSessions of [0, 1, 3, 99]) {
+      const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+        expectedRevision: revision,
+        challenge: extended(extraSessions),
+        slots: [appended(2), appended(3)],
+      });
+      expect(reply.status).toBe(409);
+      expect(reply.body['error']).toBe('extension_not_recorded');
+      expect(snapshotOf(reply).planSlots).toHaveLength(1);
+    }
+  });
+
+  it('freezes the rate an extended plan climbs at, once it is written down', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const first = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(1),
+      slots: [appended(2)],
+    });
+    expect(first.status).toBe(201);
+    const logged = await client.send('POST', '/api/workouts', {
+      workout: workoutCommand({ id: 'wo_2', planSlotId: 'slot_2' }),
+    });
+
+    const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: snapshotOf(logged).revision,
+      challenge: { ...challengeRecord(), patternParams: { extraSessions: 2, extensionDamping: 1 } },
+      slots: [appended(3)],
+    });
+    expect(reply.status).toBe(409);
+    expect(reply.body['error']).toBe('pattern_params_changed');
+    expect(snapshotOf(reply).planSlots).toHaveLength(2);
+  });
+
+  it('refuses to extend a plan that still has a session in it', async () => {
+    const harness = await start();
+    // Seeded but NOT performed: slot_1 is still `available`.
+    const { client, revision } = await seeded(harness);
+    const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: revision,
+      challenge: extended(),
+      slots: [appended(2), appended(3)],
+    });
+    expect(reply.status).toBe(409);
+    expect(reply.body['error']).toBe('plan_not_finished');
+    expect(snapshotOf(reply).planSlots).toHaveLength(1);
+  });
+
+  it('refuses an ended challenge', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const ended = await client.send('POST', '/api/challenges/ch_1/end', {
+      expectedRevision: revision,
+      endReason: 'closed_manually',
+      endedAt: '2026-07-30T20:00:00.000Z',
+    });
+    expect(ended.status).toBe(200);
+
+    const reply = await client.send('POST', '/api/challenges/ch_1/extend', {
+      expectedRevision: snapshotOf(ended).revision,
+      challenge: extended(),
+      slots: [appended(2)],
+    });
+    expect(reply.status).toBe(409);
+    expect(reply.body['error']).toBe('already_ended');
+    expect(snapshotOf(reply).planSlots).toHaveLength(1);
+  });
+
+  it('refuses a body that names a different challenge, or that starts ended', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    expect(
+      (
+        await client.send('POST', '/api/challenges/ch_1/extend', {
+          expectedRevision: revision,
+          challenge: { ...extended(), id: 'ch_2' },
+          slots: [{ ...appended(2), challengeId: 'ch_2' }],
+        })
+      ).body['error'],
+    ).toBe('challenge_mismatch');
+    expect(
+      (
+        await client.send('POST', '/api/challenges/ch_1/extend', {
+          expectedRevision: revision,
+          challenge: {
+            ...extended(),
+            status: 'ended',
+            endedAt: '2026-07-30T20:00:00.000Z',
+            endReason: 'abandoned',
+          },
+          slots: [appended(2)],
+        })
+      ).body['error'],
+    ).toBe('challenge_not_active');
+  });
+
+  it('refuses an empty extension, and slots that arrive with history', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    expect(
+      (
+        await client.send('POST', '/api/challenges/ch_1/extend', {
+          expectedRevision: revision,
+          challenge: extended(0),
+          slots: [],
+        })
+      ).body['error'],
+    ).toBe('nothing_to_append');
+    expect(
+      (
+        await client.send('POST', '/api/challenges/ch_1/extend', {
+          expectedRevision: revision,
+          challenge: extended(),
+          slots: [{ ...appended(2), status: 'completed' }],
+        })
+      ).body['error'],
+    ).toBe('slot_not_fresh');
+  });
+
+  it('404s an unknown challenge and rejects the wrong method', async () => {
+    const harness = await start();
+    const { client, revision } = await finished(harness);
+    const missing = await client.send('POST', '/api/challenges/ch_missing/extend', {
+      expectedRevision: revision,
+      challenge: { ...extended(), id: 'ch_missing' },
+      slots: [{ ...appended(2), challengeId: 'ch_missing' }],
+    });
+    expect(missing.status).toBe(404);
+    expect((await client.send('GET', '/api/challenges/ch_1/extend')).status).toBe(405);
+  });
+});
+
 // ── Import ──────────────────────────────────────────────────────────────────────────────────
 
 describe('POST /api/import', () => {
