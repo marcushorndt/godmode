@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EXTENSION_DAMPING,
   PUSHUP_5SET_TEMPLATE,
+  baseSessionCount,
   createPercentageRampPattern,
+  extendParams,
+  extensionSlots,
+  extendedGenerationMaxAt,
   generationMaxAt,
   percentageRampPattern,
   pushupParams,
   targetsForMax,
+  totalSessionCount,
   type PercentageRampParams,
 } from './percentageRamp.js';
 import { materialize } from '../contracts.js';
@@ -280,5 +286,155 @@ describe('week/day layout and validation', () => {
     for (const slot of referencePlan()) {
       expect(slot.targetTotal).toBe(slot.targets.reduce((s, t) => s + t.reps, 0));
     }
+  });
+});
+
+describe('extending a plan that has run out', () => {
+  const base = () => pushupParams(18, 100);
+
+  it('appends the owner\'s real next three sessions: 216, 227, 238', () => {
+    // baseline 18, goal 100, N = 18, coefficients [0.37, 0.47, 0.37, 0.33, 0.51], round-half-up.
+    // Damped ratio r' = r^0.5 where r = (100/18)^(1/17) = 1.10613..., so r' = 1.05173...
+    // and M(18 + k) = 100 * r'^k.
+    const added = extensionSlots(base(), 3);
+    expect(added).toHaveLength(3);
+
+    expect(added.map((s) => s.ordinal)).toEqual([19, 20, 21]);
+    expect(added.map((s) => s.targetTotal)).toEqual([216, 227, 238]);
+    expect(repsOf(added[0]!.targets)).toEqual([39, 49, 39, 35, 54]);
+    expect(repsOf(added[1]!.targets)).toEqual([41, 52, 41, 37, 56]);
+    expect(repsOf(added[2]!.targets)).toEqual([43, 55, 43, 38, 59]);
+  });
+
+  it('starts exactly where the base ramp ended, and climbs at half its rate', () => {
+    const r = generationMaxAt(18, 18, 18, 100) / generationMaxAt(17, 18, 18, 100);
+    const m19 = extendedGenerationMaxAt(1, 18, 18, 100);
+    const m20 = extendedGenerationMaxAt(2, 18, 18, 100);
+
+    // Continuous at the join: the first appended session is one damped step above goalMax,
+    // not a jump and not a repeat.
+    expect(m19 / 100).toBeCloseTo(Math.sqrt(r), 12);
+    expect(m20 / m19).toBeCloseTo(Math.sqrt(r), 12);
+    // Two damped steps land exactly on one undamped one — the definition of half in log space.
+    expect(m20).toBeCloseTo(100 * r, 10);
+
+    expect(r).toBeCloseTo(1.1061, 4);
+    expect(Math.sqrt(r)).toBeCloseTo(1.0517, 4);
+    expect(EXTENSION_DAMPING).toBe(0.5);
+  });
+
+  it('leaves every existing slot byte-identical and adds only new ordinals', () => {
+    const before = materialize(percentageRampPattern, base());
+    const snapshot = structuredClone(before);
+    const after = materialize(percentageRampPattern, extendParams(base(), 3));
+
+    expect(after).toHaveLength(21);
+    for (let i = 0; i < snapshot.length; i += 1) {
+      // Deep equality on the whole slot: targets, per-set rest, totals, week/day, metrics.
+      expect(after[i]).toEqual(snapshot[i]);
+    }
+    expect(after.slice(0, 18).map((s) => s.ordinal)).toEqual(before.map((s) => s.ordinal));
+    expect(after.slice(18).map((s) => s.ordinal)).toEqual([19, 20, 21]);
+  });
+
+  it('rewrites every session if N is raised instead — the trap this design avoids', () => {
+    const before = materialize(percentageRampPattern, base());
+    const naive = materialize(percentageRampPattern, { ...base(), weeks: 7 });
+
+    expect(naive).toHaveLength(21);
+    // Session 2 of a plan already performed would come back with a different prescription.
+    expect(naive[1]!.targetTotal).not.toBe(before[1]!.targetTotal);
+    const changed = before.filter((slot, i) => naive[i]!.targetTotal !== slot.targetTotal);
+    expect(changed.length).toBeGreaterThan(10);
+  });
+
+  it('gives the appended sessions correct week/day coordinates', () => {
+    const added = extensionSlots(base(), 3);
+    expect(added.map((s) => [s.week, s.day])).toEqual([
+      [7, 1],
+      [7, 2],
+      [7, 3],
+    ]);
+
+    // Four days a week: session 13 of a 3-week plan is week 4 day 1.
+    const fourDay = extensionSlots(pushupParams(18, 100, 3, 4), 4);
+    expect(fourDay.map((s) => [s.ordinal, s.week, s.day])).toEqual([
+      [13, 4, 1],
+      [14, 4, 2],
+      [15, 4, 3],
+      [16, 4, 4],
+    ]);
+  });
+
+  it('carries generationMax in patternMetrics, as every other slot does', () => {
+    for (const slot of extensionSlots(base(), 3)) {
+      expect(slot.patternMetrics?.['generationMax']).toBeGreaterThan(100);
+    }
+    expect(extensionSlots(base(), 1)[0]!.patternMetrics).toEqual({
+      generationMax: extendedGenerationMaxAt(1, 18, 18, 100),
+    });
+  });
+
+  it('continues from where the last extension stopped, not from the goal again', () => {
+    const once = extendParams(base(), 3);
+    const twice = extendParams(once, 3);
+
+    expect(totalSessionCount(once)).toBe(21);
+    expect(totalSessionCount(twice)).toBe(24);
+    expect(baseSessionCount(twice)).toBe(18);
+
+    // Two extensions of three == one extension of six. If k restarted at 1 the second block
+    // would repeat 216/227/238 instead of continuing past them.
+    expect(materialize(percentageRampPattern, twice)).toEqual(
+      materialize(percentageRampPattern, extendParams(base(), 6)),
+    );
+    const second = extensionSlots(once, 3);
+    expect(second.map((s) => s.ordinal)).toEqual([22, 23, 24]);
+    expect(second.map((s) => s.targetTotal)).toEqual([250, 264, 278]);
+    expect(second[0]!.targetTotal).toBeGreaterThan(238);
+  });
+
+  it('is reproducible from patternParams alone', () => {
+    const params = extendParams(base(), 3);
+    // Round-tripped through JSON, exactly as `challenges.pattern_params` stores it.
+    const stored = JSON.parse(JSON.stringify(params)) as PercentageRampParams;
+    expect(stored.extraSessions).toBe(3);
+    expect(stored.extensionDamping).toBe(EXTENSION_DAMPING);
+    expect(materialize(percentageRampPattern, stored)).toEqual(
+      materialize(percentageRampPattern, params),
+    );
+  });
+
+  it('holds steady rather than climbing when the plan was flat', () => {
+    const flat = pushupParams(40, 40, 4, 3);
+    const added = extensionSlots(flat, 3);
+    const original = materialize(percentageRampPattern, flat);
+    for (const slot of added) {
+      expect(slot.targetTotal).toBe(original[0]!.targetTotal);
+    }
+  });
+
+  it('changes nothing for a challenge that has never been extended', () => {
+    const untouched = materialize(percentageRampPattern, base());
+    expect(untouched).toHaveLength(18);
+    expect(percentageRampPattern.plannedSessionCount(base())).toBe(18);
+    expect(totalSessionCount(base())).toBe(18);
+    // An explicit zero must be the same thing as an absent field.
+    expect(materialize(percentageRampPattern, { ...base(), extraSessions: 0 })).toEqual(untouched);
+  });
+
+  it('rejects nonsense rather than producing a NaN plan', () => {
+    expect(() =>
+      percentageRampPattern.initialState({ ...base(), extraSessions: -1 }),
+    ).toThrow(RangeError);
+    expect(() =>
+      percentageRampPattern.initialState({ ...base(), extraSessions: 1.5 }),
+    ).toThrow(RangeError);
+    expect(() =>
+      percentageRampPattern.initialState({ ...base(), extensionDamping: Number.NaN }),
+    ).toThrow(RangeError);
+    expect(() => extendParams(base(), 0)).toThrow(RangeError);
+    expect(() => extendParams(base(), 2.5)).toThrow(RangeError);
+    expect(() => extendedGenerationMaxAt(0, 18, 18, 100)).toThrow(RangeError);
   });
 });

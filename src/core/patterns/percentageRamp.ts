@@ -19,7 +19,7 @@
  * asserts only "derive the final card from 100" — never "the athlete can do 100 in a row".
  */
 
-import type { NextSlot, ProgramPattern, RestPolicy } from '../contracts.js';
+import { materialize, type NextSlot, type ProgramPattern, type RestPolicy } from '../contracts.js';
 import type { PlanSlotSpec, SetRole, SetTarget } from '../types.js';
 import { repsFor } from '../rounding.js';
 import {
@@ -43,11 +43,40 @@ export interface PercentageRampParams {
   goalMax: number;
   weeks: number;
   daysPerWeek: number;
+  /**
+   * Sessions appended *after* the plan's last session, beyond `weeks * daysPerWeek`.
+   *
+   * Absent — or zero — is an unextended plan, and such a challenge behaves exactly as it did
+   * before extension existed. Recorded rather than derived so regenerating the plan from
+   * `patternParams` alone reproduces the same slots.
+   */
+  extraSessions?: number;
+  /**
+   * Log-space damping applied to the base per-session ratio for appended sessions.
+   *
+   * Defaults to `EXTENSION_DAMPING`. Persisted alongside `extraSessions` so a later change of
+   * the default cannot retroactively re-price sessions the athlete has already trained.
+   */
+  extensionDamping?: number;
 }
 
 export interface PercentageRampState {
   nextOrdinal: number;
 }
+
+/**
+ * "Climb, but gentler" — half the original ramp's growth, in log space.
+ *
+ * The base plan's per-session ratio is `r = (goal/baseline)^(1/(N-1))`. An appended session
+ * multiplies by `r^0.5` instead, so the curve keeps climbing at half the exponential rate it
+ * was climbing at when the plan ran out. For the reference challenge (18 → 100 over 18
+ * sessions) that is +10.6%/session becoming +5.2%/session.
+ *
+ * Halving in log space rather than in reps is what makes the join continuous: the extension
+ * starts exactly at `goalMax`, where the base ramp ended, and the growth rate steps down once
+ * rather than the prescription itself jumping.
+ */
+export const EXTENSION_DAMPING = 0.5;
 
 /**
  * The Just 6 Weeks push-up template. Coefficients sum to 2.05, which is why a goal of 100
@@ -104,8 +133,63 @@ export function generationMaxAt(
   return baselineMax * Math.pow(goalMax / baselineMax, (ordinal - 1) / (sessions - 1));
 }
 
+/** Sessions the plan was originally generated for, before any extension. */
+export function baseSessionCount(params: PercentageRampParams): number {
+  return params.weeks * params.daysPerWeek;
+}
+
+/** Sessions the plan has now, including everything appended by extensions. */
+export function totalSessionCount(params: PercentageRampParams): number {
+  return baseSessionCount(params) + (params.extraSessions ?? 0);
+}
+
+/**
+ * The generation max of the `k`-th appended session (k = 1, 2, 3, …).
+ *
+ *   M(N + k) = goalMax * (goalMax / baselineMax) ^ (damping * k / (N - 1))
+ *
+ * `N` is the **base** session count and never the extended one. That is the whole safety
+ * property of this design: `N` sits in the denominator of the base ramp's exponent, so
+ * recomputing it from a grown total would silently rewrite the prescription of every session
+ * already performed. Appending sessions therefore changes nothing about `M(1..N)`.
+ *
+ * A one-session base plan, or a flat one where goal equals baseline, has no ratio to damp; both
+ * fall out as a continued hold at `goalMax` rather than a special case.
+ */
+export function extendedGenerationMaxAt(
+  k: number,
+  baseSessions: number,
+  baselineMax: number,
+  goalMax: number,
+  damping: number = EXTENSION_DAMPING,
+): number {
+  if (!Number.isInteger(k) || k < 1) throw new RangeError(`k must be a positive integer, received ${k}`);
+  if (baseSessions < 1) throw new RangeError(`baseSessions must be >= 1, received ${baseSessions}`);
+  if (!(baselineMax > 0)) throw new RangeError(`baselineMax must be > 0, received ${baselineMax}`);
+  if (!(goalMax > 0)) throw new RangeError(`goalMax must be > 0, received ${goalMax}`);
+  if (!Number.isFinite(damping) || damping < 0) {
+    throw new RangeError(`damping must be a finite number >= 0, received ${damping}`);
+  }
+  if (baseSessions === 1) return goalMax;
+  return goalMax * Math.pow(goalMax / baselineMax, (damping * k) / (baseSessions - 1));
+}
+
 function validateParams(params: PercentageRampParams): void {
   const { coefficients, roles, amrapIndices, weeks, daysPerWeek } = params;
+  const { extraSessions, extensionDamping } = params;
+  if (extraSessions !== undefined && (!Number.isInteger(extraSessions) || extraSessions < 0)) {
+    throw new RangeError(
+      `extraSessions must be a non-negative integer, received ${String(extraSessions)}`,
+    );
+  }
+  if (
+    extensionDamping !== undefined &&
+    (!Number.isFinite(extensionDamping) || extensionDamping < 0)
+  ) {
+    throw new RangeError(
+      `extensionDamping must be a finite number >= 0, received ${String(extensionDamping)}`,
+    );
+  }
   if (coefficients.length === 0) throw new RangeError('coefficients must not be empty');
   if (coefficients.length !== roles.length) {
     throw new RangeError(
@@ -159,7 +243,7 @@ export function createPercentageRampPattern(
 
     plannedSessionCount(params) {
       validateParams(params);
-      return params.weeks * params.daysPerWeek;
+      return totalSessionCount(params);
     },
 
     initialState(params) {
@@ -169,16 +253,24 @@ export function createPercentageRampPattern(
 
     next({ params, state }): NextSlot<PercentageRampState> | null {
       validateParams(params);
-      const sessions = params.weeks * params.daysPerWeek;
+      const baseSessions = baseSessionCount(params);
+      const sessions = totalSessionCount(params);
+      const damping = params.extensionDamping ?? EXTENSION_DAMPING;
       const ordinal = state.nextOrdinal;
       if (ordinal > sessions) return null;
 
-      const generationMax = generationMaxAt(
-        ordinal,
-        sessions,
-        params.baselineMax,
-        params.goalMax,
-      );
+      // The base ramp is computed against `baseSessions`, never `sessions`. See
+      // `extendedGenerationMaxAt`: this is what keeps an extension from rewriting history.
+      const generationMax =
+        ordinal <= baseSessions
+          ? generationMaxAt(ordinal, baseSessions, params.baselineMax, params.goalMax)
+          : extendedGenerationMaxAt(
+              ordinal - baseSessions,
+              baseSessions,
+              params.baselineMax,
+              params.goalMax,
+              damping,
+            );
       const targets = targetsForMax(generationMax, params);
       const targetTotal = targets.reduce((sum, t) => sum + t.reps, 0);
 
@@ -206,6 +298,8 @@ export function createPercentageRampPattern(
           patternVersion: PERCENTAGE_RAMP_VERSION,
           ordinal,
           sessions,
+          baseSessions,
+          extended: ordinal > baseSessions,
           generationMax,
           restPolicyId: restPolicy.id,
           restPolicyVersion: restPolicy.version,
@@ -216,3 +310,40 @@ export function createPercentageRampPattern(
 }
 
 export const percentageRampPattern = createPercentageRampPattern();
+
+/**
+ * The slots one more block of sessions would append, and nothing else.
+ *
+ * Pure: no ids, no timestamps, no storage — the caller turns these specs into records. It
+ * materialises the *whole* extended plan and returns only the tail, which is deliberate: it
+ * proves, every time it runs, that the prefix it discards is the plan that already exists,
+ * rather than assuming it.
+ *
+ * IMP-07: computed from the challenge's own parameters. Nothing performed is consulted.
+ */
+export function extensionSlots(params: PercentageRampParams, count: number): PlanSlotSpec[] {
+  const before = totalSessionCount(params);
+  return materialize(percentageRampPattern, extendParams(params, count)).slice(before);
+}
+
+/**
+ * The same params with `count` more sessions appended.
+ *
+ * `extraSessions` accumulates, so extending twice continues where the first extension stopped
+ * instead of starting over from `goalMax`. `extensionDamping` is written down explicitly the
+ * first time an extension happens, so the curve is reproducible from the record alone.
+ */
+export function extendParams(
+  params: PercentageRampParams,
+  count: number,
+  damping: number = params.extensionDamping ?? EXTENSION_DAMPING,
+): PercentageRampParams {
+  if (!Number.isInteger(count) || count < 1) {
+    throw new RangeError(`count must be a positive integer, received ${count}`);
+  }
+  return {
+    ...params,
+    extraSessions: (params.extraSessions ?? 0) + count,
+    extensionDamping: damping,
+  };
+}
