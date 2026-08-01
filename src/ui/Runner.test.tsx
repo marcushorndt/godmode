@@ -87,6 +87,7 @@ function render(draft: WorkoutDraftRecord): void {
       <Runner
         draft={draft}
         slot={slot}
+        exerciseLabel="Liegestütze"
         onPersist={(next) => written.push(structuredClone(next))}
         onFinish={(performance, durationSeconds) => finished.push({ performance, durationSeconds })}
         onCancel={() => undefined}
@@ -124,6 +125,19 @@ const last = (): WorkoutDraftRecord => {
   if (!record) throw new Error('nothing was written');
   return record;
 };
+
+describe('the screen says what is being trained', () => {
+  it('names the exercise in a heading, through every phase of the session', () => {
+    render(freshDraft());
+    const heading = (): string => container.querySelector('h1')?.textContent ?? '';
+
+    expect(heading()).toBe('Liegestütze');
+    click('Set done');
+    expect(heading()).toBe('Liegestütze'); // resting
+    click('Skip rest');
+    expect(heading()).toBe('Liegestütze'); // set 2
+  });
+});
 
 describe('a completed set is durable immediately', () => {
   it('writes the stamp and the next phase before anything else happens', () => {
@@ -168,9 +182,10 @@ describe('the tab dies mid-workout', () => {
     written = [];
     render(onDisk);
 
-    // Back exactly where it was: resting before set 3, with 11 + 11 already banked.
+    // Back exactly where it was: resting before set 3, with 11 + 11 already banked. Which set
+    // is next is asserted by skipping into it rather than by a "Next: 8+" line, which the rest
+    // screen no longer carries — the set row above the clock already highlights it.
     expect(text()).toContain('running 22');
-    expect(text()).toContain('Next: 8+');
 
     click('Skip rest');
     expect(text()).toContain('Set 3 of 3');

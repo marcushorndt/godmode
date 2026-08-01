@@ -61,6 +61,15 @@ export interface RunnerProps {
   draft: WorkoutDraftRecord;
   /** Display context only — the week/day heading. Nothing prescriptive is taken from here. */
   slot: PlanSlotRecord;
+  /**
+   * The exercise being performed, named at the top of the screen in the largest type on it.
+   *
+   * Redundant today — one session is one exercise, and the workout row already named it before
+   * the runner opened. It is here for the screen this becomes: once a session can hold more than
+   * one exercise, "what am I actually doing right now" stops being answerable from the numbers
+   * alone, and the answer belongs in the same place it will belong then.
+   */
+  exerciseLabel: string;
   /** Set when writing the draft has been failing, so the runner can stop promising durability. */
   persistFailed?: boolean;
   /** The last save threw. Brings the save button back rather than stranding a finished workout. */
@@ -73,6 +82,7 @@ export interface RunnerProps {
 export function Runner({
   draft,
   slot,
+  exerciseLabel,
   persistFailed = false,
   saveFailed = false,
   onPersist,
@@ -337,8 +347,16 @@ export function Runner({
 
   return (
     <div className="mx-auto flex min-h-screen w-full flex-col px-4 md:max-w-lg safe-t safe-b">
-      <header className="flex items-center justify-between gap-3 pb-3">
+      {/*
+        The exercise named first and largest, above the targets and above the clock. See the prop's
+        note: today it repeats what the workout row said, and it is placed here for the version
+        of this screen that runs a session made of more than one movement.
+      */}
+      <header className="flex items-start justify-between gap-3 pb-3">
         <div className="min-w-0">
+          <h1 className="truncate text-3xl font-bold tracking-tight text-slate-100 sm:text-4xl">
+            {exerciseLabel}
+          </h1>
           <div className="truncate text-sm text-slate-400">
             {slot.week !== undefined && slot.day !== undefined
               ? `Week ${slot.week} · Day ${slot.day}`
@@ -378,8 +396,6 @@ export function Runner({
         <RestPanel
           left={restLeft}
           total={session.restTotalSeconds}
-          nextTarget={target}
-          nextIsAmrap={isAmrap}
           onAdjust={adjustRest}
           onSkip={skipRest}
         />
@@ -415,15 +431,11 @@ export function Runner({
 function RestPanel({
   left,
   total,
-  nextTarget,
-  nextIsAmrap,
   onAdjust,
   onSkip,
 }: {
   left: number;
   total: number;
-  nextTarget: number;
-  nextIsAmrap: boolean;
   onAdjust: (delta: number) => void;
   onSkip: () => void;
 }) {
@@ -466,11 +478,11 @@ function RestPanel({
         />
       </div>
 
-      <div className="text-sm text-slate-400">
-        Next: <span className="tnum font-semibold text-slate-200">{nextTarget}{nextIsAmrap ? '+' : ''}</span>
-        {nextIsAmrap ? ' — as many as you can' : ''}
-      </div>
-
+      {/*
+        No "Next: 41" line. The set row above the clock already shows every target with the one
+        coming up highlighted, so this restated a number the athlete was looking at, two inches
+        lower and in smaller type.
+      */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" onClick={() => onAdjust(-15)} ariaLabel="15 seconds less">
           −15s

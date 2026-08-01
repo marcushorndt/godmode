@@ -839,6 +839,7 @@ export function App() {
           key={run.id}
           draft={run}
           slot={state.currentSlot}
+          exerciseLabel={state.exerciseLabel}
           persistFailed={draftBroken}
           saveFailed={saveFailed}
           onPersist={(draft) => void persistDraft(draft)}
