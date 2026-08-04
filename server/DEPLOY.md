@@ -26,6 +26,41 @@ Defaults: `http://127.0.0.1:8787`, loopback only.
 | `GODMODE_SERVER_PORT` | `8787` | |
 | `GODMODE_SERVER_HOST` | `127.0.0.1` | Set to `0.0.0.0` to be reachable — see TLS below. |
 
+## As a macOS app
+
+```
+scripts/install-macos-app.sh              # install, or reinstall over an existing one
+scripts/install-macos-app.sh --dry-run    # build the bundle somewhere harmless, load nothing
+scripts/install-macos-app.sh --uninstall  # remove the app, the agent and the log
+```
+
+Two artefacts, and nothing else: `/Applications/GodMode.app`, and a LaunchAgent
+(`de.horndt.godmode`) that keeps the server running whenever you are logged in — which is also
+what lets a phone reach it without someone opening a laptop first. There is no Electron here on
+purpose: the server already serves the built client, so the app is one process on one URL and
+the browser you have is better than a bundled one.
+
+The bundle records the path to the checkout and runs the build inside it, rather than copying a
+build into itself, so `npm run build && npm run build:server` updates the installed app with no
+reinstall step. Moving the repository breaks it, and the launcher says so in a dialog rather than
+failing silently.
+
+The agent runs `Contents/MacOS/godmode-server`, not `node` directly. That wrapper does what
+`npm run serve` does — asks the server to print the secret it keeps at 0600 and hands it to the
+real process through the environment. **Do not "simplify" this by putting `GODMODE_TOKEN` in the
+plist's `EnvironmentVariables`**: it would copy the secret into a second file in a directory that
+is not 0600, for nothing. The installer greps its own output for the token and refuses to
+install if it finds it.
+
+Restarting after a rebuild:
+
+```
+launchctl kickstart -k gui/$(id -u)/de.horndt.godmode
+```
+
+None of this is on the VPS path. A server deployment is the section below; the two share the
+binary and nothing else.
+
 ## The four things a deployment must get right
 
 ### 1. TLS is not optional the moment this leaves localhost
