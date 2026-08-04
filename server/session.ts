@@ -46,9 +46,18 @@
  * `POST /api/session` always mints a *new* id and discards whatever the caller presented, so an
  * attacker who plants a cookie cannot have it promoted to an authenticated one by the owner
  * logging in.
+ *
+ * ## Why the store keys on a digest
+ *
+ * The map is keyed by the SHA-256 of the session id rather than the id itself, so the id exists
+ * in this process only for the moment it is minted and for the length of the request that
+ * presents it. That costs nothing in memory and is what makes the sessions *file* safe to write:
+ * see `server/sessionFile.ts`. Lookup by digest is not a secret comparison — a digest is being
+ * used as a map key, and the id it came from is unguessable — so `timingSafeEqual` has nothing
+ * to protect here, unlike the single stored token digest in `server/auth.ts`.
  */
 
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 
 export const SESSION_COOKIE = 'godmode_session';
@@ -59,31 +68,62 @@ export const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 /** Idle lifetime. Sliding, so an app left open for a month is not logged out mid-workout. */
 export const SESSION_IDLE_MS = 7 * 24 * 60 * 60 * 1000;
 
-interface SessionEntry {
+export interface SessionEntry {
   readonly createdAt: number;
   lastSeenAt: number;
 }
 
+/**
+ * Somewhere sessions survive a restart. `server/sessionFile.ts` is the one implementation.
+ *
+ * Keys are digests, never session ids — see the class note above. A store built without one
+ * behaves exactly as it always did: sessions live for the lifetime of the process.
+ */
+export interface SessionPersistence {
+  load: () => Map<string, SessionEntry>;
+  save: (entries: Map<string, SessionEntry>) => void;
+}
+
+/**
+ * How often a mere idle-clock refresh is allowed to write the file.
+ *
+ * `validate` touches `lastSeenAt` on every authenticated request, and writing the file that
+ * often would turn a page load into a burst of disk writes for a field whose resolution only
+ * needs to beat a seven-day idle timeout. Creating and destroying sessions is never throttled —
+ * those are the writes that must not be lost.
+ */
+export const SESSION_FLUSH_INTERVAL_MS = 60_000;
+
 export interface SessionOptions {
   readonly maxAgeMs?: number;
   readonly idleMs?: number;
+  readonly persistence?: SessionPersistence;
+  readonly flushIntervalMs?: number;
 }
 
 export class SessionStore {
-  readonly #sessions = new Map<string, SessionEntry>();
+  /** Keyed by `sha256(id)` in hex. The id itself is never retained. */
+  readonly #sessions: Map<string, SessionEntry>;
   readonly #maxAgeMs: number;
   readonly #idleMs: number;
+  readonly #persistence: SessionPersistence | undefined;
+  readonly #flushIntervalMs: number;
+  #lastFlushAt = Number.NEGATIVE_INFINITY;
 
   constructor(options: SessionOptions = {}) {
     this.#maxAgeMs = options.maxAgeMs ?? SESSION_MAX_AGE_MS;
     this.#idleMs = options.idleMs ?? SESSION_IDLE_MS;
+    this.#persistence = options.persistence;
+    this.#flushIntervalMs = options.flushIntervalMs ?? SESSION_FLUSH_INTERVAL_MS;
+    this.#sessions = this.#persistence?.load() ?? new Map<string, SessionEntry>();
   }
 
   /** 256 bits from the CSPRNG. Opaque: it encodes nothing, so nothing leaks if it is seen. */
   create(now: number): string {
     this.prune(now);
     const id = randomBytes(32).toString('base64url');
-    this.#sessions.set(id, { createdAt: now, lastSeenAt: now });
+    this.#sessions.set(sessionKey(id), { createdAt: now, lastSeenAt: now });
+    this.#flush(now, true);
     return id;
   }
 
@@ -95,29 +135,39 @@ export class SessionStore {
    */
   validate(id: string | undefined, now: number): boolean {
     if (id === undefined || id === '') return false;
-    const entry = this.#sessions.get(id);
+    const key = sessionKey(id);
+    const entry = this.#sessions.get(key);
     if (entry === undefined) return false;
     if (this.#isExpired(entry, now)) {
-      this.#sessions.delete(id);
+      this.#sessions.delete(key);
+      this.#flush(now, true);
       return false;
     }
     entry.lastSeenAt = now;
+    this.#flush(now, false);
     return true;
   }
 
   destroy(id: string | undefined): void {
-    if (id !== undefined && id !== '') this.#sessions.delete(id);
+    if (id === undefined || id === '') return;
+    if (this.#sessions.delete(sessionKey(id))) this.#flush(Date.now(), true);
   }
 
   /** Used when the token is rotated: every existing session must stop working at once. */
   destroyAll(): void {
     this.#sessions.clear();
+    this.#flush(Date.now(), true);
   }
 
   prune(now: number): void {
-    for (const [id, entry] of this.#sessions) {
-      if (this.#isExpired(entry, now)) this.#sessions.delete(id);
+    let removed = false;
+    for (const [key, entry] of this.#sessions) {
+      if (this.#isExpired(entry, now)) {
+        this.#sessions.delete(key);
+        removed = true;
+      }
     }
+    if (removed) this.#flush(now, true);
   }
 
   get size(): number {
@@ -126,13 +176,35 @@ export class SessionStore {
 
   /** When the given session stops being valid even if used continuously. */
   expiresAt(id: string): number | undefined {
-    const entry = this.#sessions.get(id);
+    const entry = this.#sessions.get(sessionKey(id));
     return entry === undefined ? undefined : entry.createdAt + this.#maxAgeMs;
   }
 
   #isExpired(entry: SessionEntry, now: number): boolean {
     return now - entry.createdAt >= this.#maxAgeMs || now - entry.lastSeenAt >= this.#idleMs;
   }
+
+  /**
+   * Write the file, unless this is only an idle-clock refresh that happened too soon after the
+   * last one. A failed write is reported and swallowed: the session is already live in memory,
+   * and refusing the request that created it because a cache could not be written would turn a
+   * durability problem into an availability one.
+   */
+  #flush(now: number, force: boolean): void {
+    if (this.#persistence === undefined) return;
+    if (!force && now - this.#lastFlushAt < this.#flushIntervalMs) return;
+    this.#lastFlushAt = now;
+    try {
+      this.#persistence.save(this.#sessions);
+    } catch (cause) {
+      console.warn('[godmode] sessions could not be saved:', cause);
+    }
+  }
+}
+
+/** The map key for a session id: its SHA-256, hex. See the note on fixation above. */
+export function sessionKey(id: string): string {
+  return createHash('sha256').update(id, 'utf8').digest('hex');
 }
 
 /**

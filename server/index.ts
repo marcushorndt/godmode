@@ -30,6 +30,7 @@ import {
 } from './http.js';
 import { API_VERSION, handleApi, type ApiContext } from './routes.js';
 import { SessionStore } from './session.js';
+import { fileSessionPersistence, sessionFilePath } from './sessionFile.js';
 
 /**
  * The floor, and why it is not `>=22`.
@@ -157,7 +158,13 @@ export function createGodmodeServer(options: ServerOptions = {}): RunningServer 
 
   const context: ApiContext = {
     db: opened.db,
-    sessions: options.sessions ?? new SessionStore(),
+    // Sessions outlive the process, in their own file beside the database — restarting the
+    // server, or rebooting the machine, no longer signs every device out. It lives next to the
+    // data rather than in it: see the note at the top of `server/sessionFile.ts`. A caller that
+    // injects its own store (the tests) gets exactly what it passed and touches no file.
+    sessions:
+      options.sessions ??
+      new SessionStore({ persistence: fileSessionPersistence(sessionFilePath(opened.dataDir)) }),
     tokenDigest: digest(token),
     limiter: options.limiter ?? new AttemptLimiter(),
     now: options.now ?? (() => Date.now()),
