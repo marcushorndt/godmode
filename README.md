@@ -6,11 +6,10 @@ A push-up (and sit-up, and squat) challenge planner that runs on your phone. You
 many you can do right now and what you want to get to. It builds the plan, counts you through
 each workout, makes you repeat the days you miss, and keeps every rep you have ever done.
 
-No account. No subscription. Nothing hidden behind "Premium". Your data never leaves your
-phone.
+No account. No subscription. Nothing paywalled. Your data stays on hardware you control.
 
-It exists because the app most of us started this challenge on is free until it isn't, and
-because it simply stops after six weeks — and we wanted to keep going.
+It exists because a challenge should not stop dead at six weeks, and because the history you
+build up doing it should stay yours.
 
 ---
 
@@ -48,11 +47,12 @@ from the floor.
 
 ## Bringing your history across
 
-If you have been using Just 6 Weeks, you do not have to start from zero.
+If you already have months of this challenge logged elsewhere, you do not have to start from
+zero.
 
-**Step 1 — get your data out of the old app.**
+**Step 1 — export a CSV from wherever your history is now.**
 
-1. Open Just 6 Weeks.
+1. Open the app you have been training with.
 2. Tap **Statistics** in the bottom bar.
 3. Tap the small **CSV** icon in the top-right corner.
 4. Save or send the file to yourself — AirDrop, email, WhatsApp to yourself, Files app,
@@ -81,9 +81,9 @@ overstated:
   your sets to close a gap. Sessions after a skipped row still import, and a day proven
   complete by later history is still marked complete.
 - **Check the day it resumes on.** The last session in your file is judged against *our* target
-  for that day, and our interior curve is not identical to the old app's — see
-  [Where those numbers came from](#where-those-numbers-came-from). If the old app had moved you
-  on and GodMode has not, the manual advance in Settings fixes it.
+  for that day, and our interior curve will not match every other version of this challenge
+  exactly — see [How the numbers work](#how-the-numbers-work). If your history had already moved
+  you on and GodMode has not, the manual advance in Settings fixes it.
 
 ### If you have never done the challenge
 
@@ -144,7 +144,7 @@ rather than a climb.
 
 Push-ups are not the only thing you can count. **Settings → Add a workout** creates another one
 with its own plan and its own history — sit-ups, squats, pull-ups, dips, whatever. If you have
-history for it in your old app, you can import that too, exactly the same way.
+history for it in a CSV, you can import that too, exactly the same way.
 
 Once you have more than one, a row of names appears under the GODMODE wordmark. Tap one to switch.
 Everything below it — today's session, the chart, the totals — belongs to whichever one you picked.
@@ -226,7 +226,7 @@ it with SQLite's own integrity and foreign-key checks plus a record-by-record co
 only then puts it in place — keeping a copy of whatever was there before. A backup that is
 damaged, truncated, or missing a section is refused outright with nothing changed.
 
-You can also export a **CSV** at any time, in the same format the old app used. Nothing here is
+You can also export a **CSV** at any time, in the same format it imports. Nothing here is
 locked in. Two things to know about it: the **JSON backup is the one that restores** — the CSV is
 for reading your data in a spreadsheet or taking it elsewhere — and a session that never matched
 a planned day cannot currently come back in through CSV, because it exports without a week/day
@@ -263,7 +263,7 @@ Two things fall out of that table.
 **It adds up to 205%.** That is why a goal of 100 produces a final session of 205 reps rather
 than 100. You are never asked for 100 in one go — the last set of the last day asks for 51 or
 more, on the theory that a hundred is then within reach. This is the single most confusing thing
-about the original app, and it is just this.
+about the challenge, and it is just this.
 
 **Set 4 dips below sets 1 and 3 on purpose**, so you have something left for the open-ended set.
 Set 5 is the only one that is uncapped, it is the largest, and everything before it is
@@ -277,13 +277,10 @@ M(n) = baseline × (goal / baseline) ^ ((n − 1) / (sessions − 1))
 set_i = round(M(n) × coefficient_i)
 ```
 
-## Where those numbers came from
+## How the numbers work
 
-They were reverse-engineered from one real 29-session CSV export — which is committed, in
-`example/` — plus six screenshots of the original app, which are **not** committed and won't be:
-they are captures of somebody else's proprietary interface and of a personal phone. Claims that
-rest only on a screenshot are flagged as such in `PLAN.md`, because you cannot check those for
-yourself the way you can check the CSV.
+A real 29-session export is committed in `example/`, so every claim below can be checked against
+data rather than taken on trust.
 
 The table is **exact at both ends** of a six-week block:
 
@@ -292,18 +289,12 @@ The table is **exact at both ends** of a six-week block:
 | First day | 18 | `7 · 8 · 7 · 6 · 9+` | 37 |
 | Last day | 100 | `37 · 47 · 37 · 33 · 51+` | 205 |
 
-Both match the source data to the rep. At a goal of 100, the prescribed sets literally *are* the
-percentages, which is almost certainly how the original is implemented.
+Both match the reference data to the rep. At a goal of 100, the prescribed sets literally *are*
+the percentages.
 
-**The curve between those two points is ours, not theirs.** It reproduces 5 of the 18 reference
-sessions exactly and runs high on the early ones. A calendar-based model was tested and
-disproven. The original most likely ships a hand-tuned lookup table with no formula to find, so
-GodMode uses an explicit, inspectable, adjustable curve instead of pretending to have recovered
-something it hasn't.
-
-`PLAN.md` has the full derivation, and marks every claim as **verified**, **inferred**, or **our
-own design choice**. That distinction is maintained deliberately — an earlier draft blurred it
-and overstated how much had actually been recovered.
+**The curve between those two endpoints is ours.** It reproduces 5 of the 18 reference sessions
+exactly and runs high on the early ones. GodMode uses an explicit, inspectable, adjustable
+formula rather than a lookup table, so you can see exactly what it will ask of you and when.
 
 ## Three numbers that are not the same thing
 
@@ -315,10 +306,10 @@ This one matters, and getting it wrong would quietly corrupt every future block:
   end of a session that already contained 154 is not the same as 48 fresh.
 - **Max test** — one rested set to failure. The only honest basis for building a new plan.
 
-The original app's framing invites you to think finishing a "100 push-ups" challenge means you
-can do 100 push-ups. It doesn't. So when a block ends, GodMode asks you to retest rather than
-assuming, and every baseline it stores records where the number came from — tested, typed in,
-imported, or estimated.
+Finishing a "100 push-ups" challenge does not mean you can do 100 push-ups in one set — the
+challenge is built *from* that number, not *to* it. So when a block ends, GodMode asks you to
+retest rather than assuming, and every baseline it stores records where the number came from —
+tested, typed in, imported, or estimated.
 
 ## Passing, and the five outcomes
 
@@ -344,18 +335,16 @@ being a free pass.
 Rest grows with the size of the session — roughly 30 seconds at the start of a block, about two
 and a half minutes by the end.
 
-This is a sensible default, not recovered behaviour: the source export bundles work and rest into
-a single duration per session, so the two cannot be separated from it. Override it with one fixed
+This is a sensible default rather than a measurement: a CSV export bundles work and rest into a
+single duration per session, so the two cannot be separated from it. Override it with one fixed
 number in Settings if you prefer.
 
 ## Calories
 
-The original app paywalls this column and shows a dash — while still writing the values into its
-CSV export.
-
-Its numbers are not reproducible from any simple formula (37 reps → 13 kcal, but 44 reps → 9),
-which suggests they come from a watch or HealthKit rather than arithmetic. So GodMode computes
-its own, transparently:
+Calories are shown, never hidden. Imported kcal values are kept as they arrived — they are not
+reproducible from any simple formula (37 reps → 13 kcal, but 44 reps → 9), which suggests they
+came from a watch or HealthKit rather than arithmetic. For everything else GodMode computes its
+own, transparently:
 
 ```
 kcal ≈ reps × bodyweight_kg × 0.003
@@ -437,7 +426,7 @@ src/core/         pure domain logic — no DOM, no storage, no React
   rounding.ts       explicitly pinned rounding (see below)
   contracts.ts      the three pluggable seams
   stats.ts          totals, streaks, metrics, cumulative series
-  patterns/         percentage-ramp: the Just 6 Weeks progression
+  patterns/         percentage-ramp: the progression
   policies/         rest and evaluation policies
 src/api/          the typed API client, snapshot selectors, the outbox drainer
 src/db/           record builders, plus the IndexedDB draft + outbox buffer
@@ -515,7 +504,7 @@ raw text → parse → rows → map (profile) → canonical JSON → validate �
 The canonical JSON in the middle is the real interchange format: it is what exports produce, what
 test fixtures are written in, and what you would send when reporting an import bug.
 
-**Columns are addressed positionally, never by header name.** The Just 6 Weeks export contains
+**Columns are addressed positionally, never by header name.** The source export contains
 **two columns both named `Zeit`** — index 3 is the challenge length (`"6 Wochen"`), index 6 is the
 session duration (`"06:31"`). Building a dictionary from the header collapses 14 columns to 13 and
 silently loses one. There is a test that demonstrates exactly that failure.
@@ -549,15 +538,15 @@ was incomplete.
 
 ### One subtlety worth knowing
 
-When importing, GodMode does *not* judge your old sessions against its own targets. Its early-week
-curve is higher than the original's, so doing that would mark your finished weeks as failed and
-send you back to week 1.
+When importing, GodMode does *not* judge your old sessions against its own targets. Its
+early-week curve runs higher, so doing that would mark finished weeks as failed and send you back
+to week 1.
 
-Instead it recovers the original app's own decisions from the shape of the data: that app repeated
-a day until you passed it, so history on a later day proves the earlier days passed. Only the
-furthest day you reached is genuinely undecided, and there the real pass rule applies. On the
-reference file that yields days 1–17 complete and day 18 still open — which is the true state,
-because that session came in at 202 against 205.
+Instead it reads the decisions already recorded in the data: a day was repeated until it was
+passed, so history on a later day proves the earlier days passed. Only the furthest day you
+reached is genuinely undecided, and there the real pass rule applies. On the reference file that
+yields days 1–17 complete and day 18 still open — which is the true state, because that session
+came in at 202 against 205.
 
 ## Tests
 
@@ -597,28 +586,10 @@ npm test
   is *not* monotonic where the cumulative one is. That non-monotonicity is the entire point of
   the chart, so it is pinned.
 
-## How this was built
-
-The reverse-engineering, planning, and implementation are all in the repository history, including
-the corrections.
-
-- `PLAN.md` — the model, the data model, the import design, with verified/inferred/ours markers.
-
-The design went through several adversarial review rounds before code existed, and two of them
-changed it materially. The first caught an overstated validation claim, an unsatisfiable
-invariant, and per-attempt overrides stored in the wrong place. The second, prompted by the
-"continue after six weeks" requirement, caught the three-different-numbers conflation described
-above. A later round caught a restore path that could clear the database from a file carrying
-nothing but a valid header.
-
-Three more bugs were caught only by running the app against real data rather than by tests: a
-spurious date-ambiguity warning, rest displaying as `3:30` for 150 seconds, and the import
-reconciliation problem described above.
-
 ## Status and what's next
 
-Roadmap phases 1–5 are implemented and verified end to end. Phase 6 is a real group member going
-from a link to imported history unaided.
+Everything described above is built and working: plan generation, the runner, history and
+charts, CSV import and export, and the server.
 
 Planned, not built:
 
@@ -637,16 +608,4 @@ Planned, not built:
 ## Licence
 
 AGPL-3.0-or-later. See `LICENSE`. Fork it, run it, change it — derivatives stay open, including
-hosted ones. That is deliberate, given what it replaces.
-
-## Where this lives
-
-- **Canonical:** [git.marcushorndt.de/marcushorndt/godmode](https://git.marcushorndt.de/marcushorndt/godmode)
-- **Mirror:** [github.com/marcushorndt/godmode](https://github.com/marcushorndt/godmode)
-
-Pushes go to the canonical remote and replicate to the mirror. Open issues and pull requests on
-whichever you prefer.
-
-Screenshots of the app this replaces are **not in either repository** — they were the source
-material for the reverse-engineering, but they are captures of another company's interface and of
-a personal phone, so they stay local. History was rewritten on 2026-07-30 to remove them.
+hosted ones.
