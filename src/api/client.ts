@@ -292,6 +292,29 @@ export function extendChallenge(
   });
 }
 
+/**
+ * Re-price the sessions ahead. Adaptive mode's only write.
+ *
+ * Each slot supersedes exactly one existing one and keeps its ordinal, week and day. The server
+ * refuses any slot that replaces a session already trained, and refuses the challenge if
+ * anything but the pacing state has moved.
+ */
+export function repaceChallenge(
+  challengeId: string,
+  body: {
+    expectedRevision: number;
+    challenge: ChallengeRecord;
+    slots: readonly PlanSlotRecord[];
+  },
+): Promise<CommandResult & { repaced: number }> {
+  return request({
+    method: 'POST',
+    path: `/challenges/${encodeURIComponent(challengeId)}/pace`,
+    body,
+    expect: [200],
+  });
+}
+
 export function startNextBlock(body: {
   expectedRevision: number;
   previousChallengeId: string;

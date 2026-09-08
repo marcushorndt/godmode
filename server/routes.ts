@@ -738,13 +738,9 @@ function repaceChallenge(
       `The body describes challenge "${challenge.id}" but the route names "${challengeId}".`,
     );
   }
-  if (slots.length === 0) {
-    throw new HttpError(
-      422,
-      'nothing_to_repace',
-      'A re-pace must replace at least one session. Nothing has been changed.',
-    );
-  }
+  // An empty `slots` is legitimate and is how the mode is switched on: seeding the pace produces
+  // the same prescriptions the fixed plan already holds, so there is nothing ahead to rewrite and
+  // only the state itself needs recording.
   assertSlotsBelongTo(slots, challenge);
 
   const supersededIds = new Set<string>();

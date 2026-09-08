@@ -8,10 +8,18 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { buildChallenge, buildExtension, PlanExtensionError } from './records.js';
+import {
+  adaptivePaceOf,
+  buildChallenge,
+  buildExtension,
+  buildRepace,
+  disableAdaptivePace,
+  enableAdaptivePace,
+  PlanExtensionError,
+} from './records.js';
 import { pushupParams } from '../core/patterns/percentageRamp.js';
 import type { Baseline } from '../core/types.js';
-import type { ChallengeRecord, PlanSlotRecord } from './schema.js';
+import type { ChallengeRecord, PlanSlotRecord, WorkoutRecord } from './schema.js';
 
 const baseline: Baseline = {
   value: 18,
@@ -145,5 +153,133 @@ describe('buildExtension', () => {
     const b = buildExtension({ challenge, existingSlots: slots });
     expect(a.slots.map((s) => s.targets)).toEqual(b.slots.map((s) => s.targets));
     expect(a.slots.map((s) => s.targetTotal)).toEqual(b.slots.map((s) => s.targetTotal));
+  });
+});
+
+describe('buildRepace', () => {
+  const now = '2026-09-08T10:00:00.000Z';
+
+  /** A workout on `slot`, doing `capped` reps across its prescribed sets. */
+  function workoutOn(
+    slot: PlanSlotRecord,
+    capped: number,
+    over: Partial<WorkoutRecord> = {},
+  ): WorkoutRecord {
+    const cappedTarget = slot.targets.reduce((sum, t) => (t.isAmrap ? sum : sum + t.reps), 0);
+    const scale = cappedTarget === 0 ? 1 : capped / cappedTarget;
+    return {
+      id: `wo_${slot.id}_${String(over.attemptNo ?? 1)}`,
+      challengeId: slot.challengeId,
+      chainId: slot.challengeId,
+      planSlotId: slot.id,
+      attemptNo: 1,
+      performedAt: now,
+      sets: slot.targets.map((t, i) => ({
+        index: i + 1,
+        effectiveTarget: t.reps,
+        actual: t.isAmrap ? t.reps : Math.round(t.reps * scale),
+      })),
+      actualTotal: slot.targetTotal,
+      adjustmentType: 'none',
+      effectiveTotal: slot.targetTotal,
+      outcome: 'completed_as_planned',
+      ...over,
+    };
+  }
+
+  /** The reference challenge with adaptive pacing on and the first `done` sessions resolved. */
+  function paced(done: number, workoutOver: Partial<WorkoutRecord> = {}) {
+    const { challenge, slots } = reference();
+    const on = enableAdaptivePace(challenge, 1);
+    const resolved = slots.map((slot, i) =>
+      i < done ? { ...slot, status: 'completed' as const } : slot,
+    );
+    const workouts = resolved
+      .slice(0, done)
+      // Short on the prescribed sets, so the controller has something to react to.
+      .map((slot) => workoutOn(slot, Math.round(
+        slot.targets.reduce((sum, t) => (t.isAmrap ? sum : sum + t.reps), 0) * 0.85,
+      ), workoutOver));
+    return { challenge: on, slots: resolved, workouts };
+  }
+
+  it('returns nothing when the plan is not following the athlete', () => {
+    const { challenge, slots } = reference();
+    expect(buildRepace({ challenge, existingSlots: slots, workouts: [] })).toBeNull();
+  });
+
+  it('returns nothing when no session has resolved since it last ran', () => {
+    const { challenge, slots } = paced(0);
+    expect(buildRepace({ challenge, existingSlots: slots, workouts: [] })).toBeNull();
+  });
+
+  it('replaces only the sessions ahead, and every one it replaces it supersedes', () => {
+    const { challenge, slots, workouts } = paced(3);
+    const plan = buildRepace({ challenge, existingSlots: slots, workouts });
+    expect(plan).not.toBeNull();
+
+    const completed = new Set(slots.slice(0, 3).map((s) => s.id));
+    for (const slot of plan!.slots) {
+      expect(slot.status).toBe('available');
+      expect(slot.supersedesId).toBeDefined();
+      // Never a session already trained.
+      expect(completed.has(slot.supersedesId!)).toBe(false);
+      // The identity of the session is untouched: only its load moves.
+      const replaced = slots.find((s) => s.id === slot.supersedesId)!;
+      expect(slot.ordinal).toBe(replaced.ordinal);
+      expect(slot.week).toBe(replaced.week);
+      expect(slot.day).toBe(replaced.day);
+      expect(slot.id).not.toBe(replaced.id);
+    }
+  });
+
+  it('eases the sessions ahead for an athlete who is falling short', () => {
+    const { challenge, slots, workouts } = paced(3);
+    const plan = buildRepace({ challenge, existingSlots: slots, workouts })!;
+
+    for (const slot of plan.slots) {
+      const replaced = slots.find((s) => s.id === slot.supersedesId)!;
+      expect(slot.targetTotal).toBeLessThanOrEqual(replaced.targetTotal);
+    }
+    // And the sessions it writes still climb.
+    const totals = plan.slots.map((s) => s.targetTotal);
+    expect([...totals].sort((a, b) => a - b)).toEqual(totals);
+  });
+
+  it('IGNORES imported history, which was prescribed by a different curve', () => {
+    const fresh = paced(3);
+    const imported = paced(3, { importSource: 'just6weeks-csv' });
+
+    expect(buildRepace({ ...fresh, existingSlots: fresh.slots })).not.toBeNull();
+    // Same sessions, same shortfall, but the rows came from a file. Nothing is learned from them.
+    expect(
+      buildRepace({
+        challenge: imported.challenge,
+        existingSlots: imported.slots,
+        workouts: imported.workouts,
+      }),
+    ).toBeNull();
+  });
+
+  it('records why each session changed, and folds each session in exactly once', () => {
+    const { challenge, slots, workouts } = paced(3);
+    const first = buildRepace({ challenge, existingSlots: slots, workouts })!;
+    expect(first.slots[0]?.decision).toMatchObject({ reason: 'adaptive-pace' });
+
+    // Running it again against the same history must find nothing left to do.
+    const applied = slots.map((slot) => {
+      const replacement = first.slots.find((s) => s.supersedesId === slot.id);
+      return replacement ?? slot;
+    });
+    expect(
+      buildRepace({ challenge: first.challenge, existingSlots: applied, workouts }),
+    ).toBeNull();
+  });
+
+  it('turning the mode off leaves every session exactly where it stands', () => {
+    const { challenge, slots, workouts } = paced(3);
+    const off = disableAdaptivePace(challenge);
+    expect(adaptivePaceOf(off)).toBeUndefined();
+    expect(buildRepace({ challenge: off, existingSlots: slots, workouts })).toBeNull();
   });
 });

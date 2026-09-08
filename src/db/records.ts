@@ -19,6 +19,15 @@ import {
   totalSessionCount,
   type PercentageRampParams,
 } from '../core/patterns/percentageRamp.js';
+import {
+  isFlat,
+  maxAtUnits,
+  observeSession,
+  seedAdaptiveState,
+  targetsAtUnits,
+  type AdaptivePaceState,
+  type SessionObservation,
+} from '../core/patterns/adaptivePace.js';
 import { DEFAULT_VOLUME_REST_PARAMS, volumeDerivedRestPolicy } from '../core/policies/rest.js';
 import {
   TOTAL_REPS_POLICY_ID,
@@ -41,6 +50,7 @@ import {
   type ExerciseRecord,
   type PendingWorkout,
   type PlanSlotRecord,
+  type WorkoutRecord,
   type SettingsRecord,
 } from './schema.js';
 
@@ -300,6 +310,179 @@ export function buildExtension(input: {
     },
     slots: specs.map((spec) => specToRecord(spec, challenge.id, generatedAt)),
     firstOrdinal: before + 1,
+  };
+}
+
+/** Everything a re-pace needs, ready to be sent as one command. */
+export interface PlanRepace {
+  /** The same challenge with its `patternParams` carrying the new pacing state. */
+  challenge: ChallengeRecord;
+  /** Replacements for the sessions ahead. Each supersedes exactly one existing slot. */
+  slots: PlanSlotRecord[];
+}
+
+/**
+ * Turn adaptive pacing on for a challenge, starting exactly where the fixed plan stands.
+ *
+ * Seeding at `ordinal - 1` with a step of 1.0 is what makes switching mode safe: the next session
+ * is byte-identical to the one fixed mode would have given, and the plan only starts to diverge
+ * once there is evidence to diverge on.
+ */
+export function enableAdaptivePace(
+  challenge: ChallengeRecord,
+  nextOrdinal: number,
+): ChallengeRecord {
+  const params = challenge.patternParams as unknown as PercentageRampParams;
+  if (challenge.patternId !== percentageRampPattern.id || isFlat(params)) {
+    throw new PlanExtensionError(
+      'unsupported',
+      'This plan has no curve to pace, so it cannot follow your training.',
+    );
+  }
+  return {
+    ...challenge,
+    patternParams: {
+      ...challenge.patternParams,
+      adaptivePace: seedAdaptiveState(params, nextOrdinal),
+    } as unknown as Record<string, unknown>,
+  };
+}
+
+/** Turn it off, leaving the sessions already written exactly as they are. */
+export function disableAdaptivePace(challenge: ChallengeRecord): ChallengeRecord {
+  const params = { ...challenge.patternParams };
+  delete params['adaptivePace'];
+  return { ...challenge, patternParams: params };
+}
+
+/** The pacing state a challenge carries, or undefined when it is on the fixed plan. */
+export function adaptivePaceOf(challenge: ChallengeRecord): AdaptivePaceState | undefined {
+  const raw = challenge.patternParams['adaptivePace'];
+  if (raw === null || typeof raw !== 'object') return undefined;
+  const state = raw as Partial<AdaptivePaceState>;
+  if (
+    typeof state.units !== 'number' ||
+    typeof state.step !== 'number' ||
+    typeof state.throughOrdinal !== 'number' ||
+    !Array.isArray(state.recent)
+  ) {
+    return undefined;
+  }
+  return {
+    units: state.units,
+    step: state.step,
+    recent: state.recent.filter((n): n is number => typeof n === 'number'),
+    throughOrdinal: state.throughOrdinal,
+  };
+}
+
+/**
+ * What a finished session teaches the controller, or nothing when it must be ignored.
+ *
+ * Returns undefined for a slot whose history came from an import. That is the rule stated in
+ * `adaptivePace.ts` and it is enforced here, at the only place that turns stored rows into
+ * observations: imported sessions were prescribed by a different curve, and on the owner's own
+ * file they run at 0.87 to 0.98 of ours, which would read as a struggling athlete and ease the
+ * plan on day one for a reason that has nothing to do with him.
+ */
+function observationFor(
+  slot: PlanSlotRecord,
+  workouts: readonly WorkoutRecord[],
+): SessionObservation | undefined {
+  const attempts = workouts.filter((w) => w.planSlotId === slot.id);
+  if (attempts.length === 0) return undefined;
+  if (attempts.some((w) => w.importSource !== undefined)) return undefined;
+
+  const cappedTarget = slot.targets.reduce((sum, t) => (t.isAmrap ? sum : sum + t.reps), 0);
+  const cappedActual = Math.max(
+    ...attempts.map((w) =>
+      w.sets.reduce((sum, set, i) => (slot.targets[i]?.isAmrap === true ? sum : sum + set.actual), 0),
+    ),
+  );
+
+  return {
+    ordinal: slot.ordinal,
+    cappedActual,
+    cappedTarget,
+    attempts: attempts.length,
+    passed: slot.status === 'completed',
+  };
+}
+
+/**
+ * Re-price the sessions ahead from what has been trained since the last time this ran.
+ *
+ * Returns `null` when there is nothing to do: the challenge is not paced adaptively, no session
+ * has resolved since the state was last folded, or the recomputed sessions are identical to the
+ * ones already stored. Writing rows that say the same thing would churn the plan for nothing.
+ *
+ * Only `available` slots are replaced, which is the same rule the server enforces again against
+ * what it actually holds. This side cannot see another device.
+ */
+export function buildRepace(input: {
+  challenge: ChallengeRecord;
+  existingSlots: readonly PlanSlotRecord[];
+  workouts: readonly WorkoutRecord[];
+}): PlanRepace | null {
+  const { challenge } = input;
+  if (challenge.status !== 'active') return null;
+  if (challenge.patternId !== percentageRampPattern.id) return null;
+
+  const params = challenge.patternParams as unknown as PercentageRampParams;
+  if (isFlat(params)) return null;
+  const before = adaptivePaceOf(challenge);
+  if (before === undefined) return null;
+
+  const resolved = [...input.existingSlots]
+    .filter((slot) => slot.status === 'completed' || slot.status === 'attempted')
+    .sort((a, b) => a.ordinal - b.ordinal);
+
+  let state = before;
+  for (const slot of resolved) {
+    const observation = observationFor(slot, input.workouts);
+    if (observation !== undefined) state = observeSession(params, state, observation);
+  }
+  if (state.throughOrdinal === before.throughOrdinal) return null;
+
+  const ahead = [...input.existingSlots]
+    .filter((slot) => slot.status === 'available')
+    .sort((a, b) => a.ordinal - b.ordinal);
+
+  const generatedAt = nowIso();
+  const slots: PlanSlotRecord[] = [];
+  ahead.forEach((slot, i) => {
+    const units = state.units + i * state.step;
+    const targets = targetsAtUnits(params, units);
+    const targetTotal = targets.reduce((sum, t) => sum + t.reps, 0);
+    if (targetTotal === slot.targetTotal) return; // already says this; leave the row alone
+    slots.push({
+      ...slot,
+      id: newId('slot'),
+      generatedAt,
+      targets,
+      targetTotal,
+      patternMetrics: { generationMax: maxAtUnits(params, units) },
+      decision: {
+        reason: 'adaptive-pace',
+        units,
+        step: state.step,
+        previousTargetTotal: slot.targetTotal,
+      },
+      status: 'available',
+      supersedesId: slot.id,
+    });
+  });
+
+  if (slots.length === 0) return null;
+  return {
+    challenge: {
+      ...challenge,
+      patternParams: {
+        ...challenge.patternParams,
+        adaptivePace: state,
+      } as unknown as Record<string, unknown>,
+    },
+    slots,
   };
 }
 

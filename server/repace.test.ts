@@ -251,6 +251,26 @@ describe('re-pacing the sessions ahead', () => {
     expect(after.planSlots.some((s) => s.id === 'slot_1_v2')).toBe(false);
   });
 
+  it('records the pace with nothing ahead to change, which is how the mode is switched on', async () => {
+    const h = await start();
+    const { challengeId } = await seed(h);
+    const snap = await snapshot(h);
+
+    const reply = await send(h, 'POST', `/api/challenges/${challengeId}/pace`, {
+      expectedRevision: snap.revision,
+      challenge: paced(challengeId, snap, PACE),
+      slots: [],
+    });
+    expect(reply.status).toBe(200);
+    expect(reply.body['repaced']).toBe(0);
+
+    const after = await snapshot(h);
+    expect(after.challenges.find((c) => c.id === challengeId)?.patternParams['adaptivePace'])
+      .toEqual(PACE);
+    // Every session is exactly where it was.
+    expect(after.planSlots.filter((s) => s.status === 'available')).toHaveLength(3);
+  });
+
   it('refuses to move a session to a different ordinal', async () => {
     const h = await start();
     const { challengeId } = await seed(h);

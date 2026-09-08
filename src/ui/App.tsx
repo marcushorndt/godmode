@@ -27,6 +27,7 @@ import {
   closeSession,
   endChallenge as endChallengeCommand,
   extendChallenge as extendChallengeCommand,
+  repaceChallenge as repaceChallengeCommand,
   getSnapshot,
   patchSettings,
   postWorkout,
@@ -64,6 +65,10 @@ import { requestPersistentStorage } from '../db/local.js';
 import { enqueueWorkout, listOutbox, OutboxWriteError, unblockAll } from '../db/outbox.js';
 import {
   buildExtension,
+  buildRepace,
+  adaptivePaceOf,
+  enableAdaptivePace,
+  disableAdaptivePace,
   buildNextBlock,
   buildWorkout,
   newId,
@@ -80,6 +85,7 @@ import type {
   WorkoutRecord,
 } from '../db/schema.js';
 import { onDatabaseConflict } from '../db/schema.js';
+import { forecastBlock } from '../core/patterns/adaptivePace.js';
 import { ExportSheet } from './ExportSheet.js';
 import { History } from './History.js';
 import { Runner } from './Runner.js';
@@ -620,6 +626,101 @@ export function App() {
    * The only path that loses a workout is IndexedDB refusing the write as well, and that is the
    * one case the runner is kept on screen for, still holding the reps.
    */
+/**
+   * Re-price the sessions ahead, when this challenge is following the athlete.
+   *
+   * Runs after a workout lands and never before. It is deliberately silent and deliberately
+   * unable to fail the save: the workout is already on the server by the time this is called, and
+   * a re-pace that cannot land is simply retried after the next session, because the state
+   * carries the ordinal it has folded through and folding is idempotent.
+   *
+   * Returns the snapshot to use, which is the re-paced one when it worked and the one that came
+   * back from the workout otherwise.
+   */
+  const repaceAfterWorkout = useCallback(
+    async (snap: Snapshot, challengeId: string): Promise<Snapshot> => {
+      try {
+        const challenge = snap.challenges.find((c) => c.id === challengeId);
+        if (challenge === undefined) return snap;
+        const plan = buildRepace({
+          challenge,
+          existingSlots: snap.planSlots.filter((slot) => slot.challengeId === challengeId),
+          workouts: snap.workouts.filter((workout) => workout.challengeId === challengeId),
+        });
+        if (plan === null) return snap;
+
+        const result = await repaceChallengeCommand(challengeId, {
+          expectedRevision: snap.revision,
+          challenge: plan.challenge,
+          slots: plan.slots,
+        });
+        return result.snapshot;
+      } catch {
+        // Nothing is reported. The training is saved, which is the only thing that had to work.
+        return snap;
+      }
+    },
+    [],
+  );
+
+/**
+   * Turn adaptive pacing on or off for the showing workout.
+   *
+   * Sent as a re-pace carrying no slots: seeding the state produces the same prescriptions the
+   * plan already holds, so there is nothing ahead to rewrite and only the state needs recording.
+   * Turning it off leaves every session exactly as it stands rather than snapping back to the
+   * fixed curve, which would move numbers the user has already seen.
+   */
+/**
+   * Where the block lands at the rate the finished sessions actually went.
+   *
+   * Undefined on the fixed plan, which promises the goal and means it.
+   */
+  const paceForecast = useMemo(() => {
+    if (state?.challenge === undefined) return undefined;
+    const pace = adaptivePaceOf(state.challenge);
+    if (pace === undefined) return undefined;
+    const remaining = state.slots.filter((slot) => slot.status === 'available').length;
+    if (remaining === 0) return undefined;
+    try {
+      const forecast = forecastBlock(
+        state.challenge.patternParams as never,
+        pace,
+        remaining,
+      );
+      return { remainingSessions: remaining, finalTotal: forecast.finalTotal };
+    } catch {
+      return undefined;
+    }
+  }, [state]);
+
+  const setAdaptive = useCallback(
+    async (on: boolean) => {
+      const challenge = state?.challenge;
+      if (challenge === undefined) return;
+      const nextOrdinal = state?.currentSlot?.ordinal ?? (state?.slots.length ?? 0) + 1;
+      let next: ChallengeRecord;
+      try {
+        next = on ? enableAdaptivePace(challenge, nextOrdinal) : disableAdaptivePace(challenge);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'That could not be changed.');
+        return;
+      }
+      await runCommand(
+        (revision) =>
+          repaceChallengeCommand(challenge.id, {
+            expectedRevision: revision,
+            challenge: next,
+            slots: [],
+          }),
+        on
+          ? 'Your plan will follow your training from here.'
+          : 'Your plan is fixed again. Nothing already scheduled has changed.',
+      );
+    },
+    [state, runCommand],
+  );
+
   const finishWorkout = useCallback(
     async (
       performance: WorkoutPerformance,
@@ -689,7 +790,7 @@ export function App() {
       // nothing here may report a failure to save. A draft that survives a failed cleanup is
       // filtered out of the resume offer anyway: its id is a workout in the snapshot now.
       markWorkoutSettled(workout.id);
-      setSnapshot(accepted.snapshot);
+      setSnapshot(await repaceAfterWorkout(accepted.snapshot, state.challenge.id));
       setOffline(false);
       setRun(null);
       goToTab('today');
@@ -697,7 +798,7 @@ export function App() {
       await clearDraftsForSlot(slot.id).catch(() => undefined);
       await readLocal().catch(() => undefined);
     },
-    [state, goToTab, readLocal],
+    [state, goToTab, readLocal, repaceAfterWorkout],
   );
 
   const advanceManually = useCallback(async () => {
@@ -1155,6 +1256,7 @@ export function App() {
             }}
             onAdvanceManually={() => void advanceManually()}
             onExtend={() => void extendPlan()}
+            pace={paceForecast}
             onContinueChain={() => setView({ kind: 'continue' })}
             onShare={() => setShareOpen(true)}
           />
@@ -1182,6 +1284,10 @@ export function App() {
             }}
             onOpenExport={() => setShareOpen(true)}
             onImportHistory={() => setView({ kind: 'import-history' })}
+            adaptive={
+              state.challenge === undefined ? undefined : adaptivePaceOf(state.challenge) !== undefined
+            }
+            onSetAdaptive={(on) => void setAdaptive(on)}
             onSignOut={() => void signOut()}
           />
         ) : null}

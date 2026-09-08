@@ -37,6 +37,14 @@ export interface TodayProps {
   extension?: ExtensionSession[] | undefined;
   /** Why another week cannot be offered, when that is a fault worth naming rather than silence. */
   extensionProblem?: string | undefined;
+  /**
+   * Where this block is heading, when the plan is following you.
+   *
+   * This is the whole of adaptive mode's visible surface, and it is deliberately a forecast
+   * rather than a question. The owner chose a mode that adjusts silently: being asked to approve
+   * a change every week is worse than being told where you are going.
+   */
+  pace?: { remainingSessions: number; finalTotal: number } | undefined;
   onStart: (effectiveTargets: number[], adjustment: AdjustmentType) => void;
   onAdvanceManually: () => void;
   onExtend: () => void;
@@ -56,6 +64,7 @@ export function Today({
   lastMessage,
   extension,
   extensionProblem,
+  pace,
   onStart,
   onAdvanceManually,
   onExtend,
@@ -186,6 +195,17 @@ export function Today({
               day {slotsAdvanced + 1} of {slotsTotal}
             </span>
           </div>
+
+          {/*
+            Where the block is heading, at the rate the finished sessions actually went. It says
+            what you will be doing, not what you were promised: the goal became an outcome the
+            moment the plan started following you.
+          */}
+          {pace !== undefined && pace.remainingSessions > 0 ? (
+            <p className="tnum mt-2 text-xs text-teal-300">
+              At this rate, your last day of the block asks for {pace.finalTotal}.
+            </p>
+          ) : null}
 
           {adjustment !== 'none' ? (
             <div className="mt-3 text-xs">

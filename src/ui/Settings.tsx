@@ -16,7 +16,7 @@
 import { useState } from 'react';
 import { daysSinceBackup } from '../data/exchange.js';
 import type { ChallengeRecord, SettingsRecord } from '../db/schema.js';
-import { Banner, Button, Card, NumberField } from './kit.js';
+import { Banner, Button, Card, NumberField, Segmented } from './kit.js';
 
 export function Settings({
   settings,
@@ -28,6 +28,8 @@ export function Settings({
   onSave,
   onOpenExport,
   onImportHistory,
+  adaptive,
+  onSetAdaptive,
   onSignOut,
 }: {
   settings: SettingsRecord;
@@ -40,6 +42,9 @@ export function Settings({
   onSave: (patch: Partial<SettingsRecord>) => void;
   onOpenExport: () => void;
   onImportHistory: () => void;
+  /** Whether the showing workout's plan follows your training. Undefined when it cannot. */
+  adaptive: boolean | undefined;
+  onSetAdaptive: (on: boolean) => void;
   onSignOut: () => void;
 }) {
   const [bodyweight, setBodyweight] = useState<number | ''>(settings.bodyweightKg ?? '');
@@ -136,6 +141,41 @@ export function Settings({
           </Button>
         </div>
       </Card>
+
+      {/*
+        Two modes, one switch, and the copy is careful about which is which. "Follows your
+        training" is what it does; "learns" is what it does not do, and this project has a
+        documented habit of overstating exactly this kind of claim.
+      */}
+      {adaptive === undefined ? null : (
+        <Card className="lg:mb-4 lg:break-inside-avoid">
+          <h3 className="font-semibold text-slate-100">How the plan progresses</h3>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
+            The standard plan climbs on a fixed curve and reaches your goal in six weeks, whoever
+            you are. If that curve outruns you, every session becomes one you fail.
+          </p>
+          <div className="mt-4">
+            <Segmented
+              ariaLabel="How the plan progresses"
+              value={adaptive ? 'adaptive' : 'fixed'}
+              onChange={(value) => onSetAdaptive(value === 'adaptive')}
+              options={[
+                { value: 'fixed', label: 'Fixed curve' },
+                { value: 'adaptive', label: 'Follow me' },
+              ]}
+            />
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-slate-300">
+            {adaptive
+              ? 'Your plan is following you. Sessions ahead are re-priced after each one you ' +
+                'finish, and Today shows where the block is heading. Days you have already ' +
+                'trained are never changed, and a target never goes down.'
+              : 'Switching to "Follow me" keeps your goal and the length of the block. It changes ' +
+                'how fast the sessions climb toward it, based on how the ones you finish actually ' +
+                'go. Your next session will not get harder.'}
+          </p>
+        </Card>
+      )}
 
       <Card className="lg:mb-4 lg:break-inside-avoid">
         <h3 className="font-semibold text-slate-100">Backups</h3>

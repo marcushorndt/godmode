@@ -117,6 +117,17 @@ export interface AdaptivePaceState {
    * stop one heroic or one dreadful session steering the plan.
    */
   recent: number[];
+  /**
+   * The highest session ordinal already folded in.
+   *
+   * This is what makes folding idempotent, and it is not optional. The state evolves
+   * incrementally rather than being recomputed from history, because recomputing would let a
+   * comfortable athlete's accumulated step carry the position past where the fixed plan stands,
+   * and switching mode would then hand him a *harder* session. Incremental evolution needs a
+   * guard against the same session being counted twice, which two devices posting the same
+   * workout would otherwise do.
+   */
+  throughOrdinal: number;
 }
 
 /**
@@ -133,6 +144,8 @@ export interface AdaptivePaceState {
  * better at 0.85 but by prescribed work is 0.91 and is the one that shows real trouble.
  */
 export interface SessionObservation {
+  /** Which session this was. Sessions are folded in ascending order, each exactly once. */
+  ordinal: number;
   /** Reps actually done on the prescribed (non-AMRAP) sets. */
   cappedActual: number;
   /** Reps those sets asked for. */
@@ -245,6 +258,7 @@ export function seedAdaptiveState(
     units: ordinal - 1,
     step: 1,
     recent: history.slice(-OBSERVATION_WINDOW).map(marginOf),
+    throughOrdinal: ordinal - 1,
   };
 }
 
@@ -277,20 +291,24 @@ export function observeSession(
     );
   }
 
+  // Already counted. Two devices posting the same workout must not fold it twice.
+  if (observation.ordinal <= state.throughOrdinal) return state;
+
   const recent = [...state.recent, marginOf(observation)].slice(-OBSERVATION_WINDOW);
   const meanMargin = recent.reduce((a, b) => a + b, 0) / recent.length;
   const step = clampStep(state.step * factorFor(observation, meanMargin));
+  const throughOrdinal = observation.ordinal;
 
   // A failure moves the step and nothing else. The plan holds and the app repeats the session,
   // which is what it already does. Easing while the athlete is stuck is the windup this design
   // avoids: the step governs the move to the NEXT session and has no authority over this one.
-  if (!observation.passed) return { units: state.units, step, recent };
+  if (!observation.passed) return { units: state.units, step, recent, throughOrdinal };
 
   // Advance from where the plan is, by the step. Deliberately not from what was achieved: with
   // an open-ended set every athlete overshoots, so chasing the achieved total makes the plan
   // accelerate away from exactly the people it exists to keep up with. Because the step is always
   // positive, this is also the ratchet: a prescription can never go down.
-  return { units: state.units + step, step, recent };
+  return { units: state.units + step, step, recent, throughOrdinal };
 }
 
 /**

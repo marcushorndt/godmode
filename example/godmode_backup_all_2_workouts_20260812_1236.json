@@ -1,0 +1,3992 @@
+{
+  "format": "godmode-backup",
+  "formatVersion": 1,
+  "dbVersion": 4,
+  "exportedAt": "2026-08-12T11:36:50.599Z",
+  "exercises": [
+    {
+      "id": "ex_aa0809e4-d83f-4be0-a62c-c8a23d4e8ebd",
+      "label": "Liegestütze",
+      "unit": "reps",
+      "createdAt": "2026-07-30T12:31:41.651Z"
+    },
+    {
+      "id": "ex_a5ac2a8b-eb8b-4b10-8b71-946760121007",
+      "label": "Pull-ups",
+      "unit": "reps",
+      "createdAt": "2026-07-30T12:33:36.133Z"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "exerciseId": "ex_aa0809e4-d83f-4be0-a62c-c8a23d4e8ebd",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "patternParams": {
+        "amrapIndices": [
+          4
+        ],
+        "baselineMax": 18,
+        "coefficients": [
+          0.37,
+          0.47,
+          0.37,
+          0.33,
+          0.51
+        ],
+        "daysPerWeek": 3,
+        "extensionDamping": 0.5,
+        "extraSessions": 3,
+        "goalMax": 100,
+        "roles": [
+          "medium",
+          "big",
+          "medium",
+          "small",
+          "amrap"
+        ],
+        "weeks": 6
+      },
+      "restPolicyId": "volume-derived-rest",
+      "restPolicyVersion": 1,
+      "restPolicyParams": {
+        "intercept": 4,
+        "maxSeconds": 180,
+        "minSeconds": 30,
+        "roundToSeconds": 5,
+        "slope": 0.71
+      },
+      "evaluationPolicyId": "total-reps-at-least-target",
+      "evaluationPolicyVersion": 1,
+      "baseline": {
+        "value": 18,
+        "source": "estimated",
+        "recordedAt": "2026-07-30T12:31:41.648Z"
+      },
+      "goalValue": 100,
+      "status": "active",
+      "startedAt": "2026-07-30T12:31:41.703Z"
+    },
+    {
+      "id": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "exerciseId": "ex_a5ac2a8b-eb8b-4b10-8b71-946760121007",
+      "chainId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "patternParams": {
+        "amrapIndices": [
+          4
+        ],
+        "baselineMax": 5,
+        "coefficients": [
+          0.37,
+          0.47,
+          0.37,
+          0.33,
+          0.51
+        ],
+        "daysPerWeek": 3,
+        "goalMax": 20,
+        "roles": [
+          "medium",
+          "big",
+          "medium",
+          "small",
+          "amrap"
+        ],
+        "weeks": 6
+      },
+      "restPolicyId": "volume-derived-rest",
+      "restPolicyVersion": 1,
+      "restPolicyParams": {
+        "intercept": 4,
+        "maxSeconds": 180,
+        "minSeconds": 30,
+        "roundToSeconds": 5,
+        "slope": 0.71
+      },
+      "evaluationPolicyId": "total-reps-at-least-target",
+      "evaluationPolicyVersion": 1,
+      "baseline": {
+        "value": 5,
+        "source": "tested",
+        "evidenceId": "test_d6004b38-29e2-4097-b4da-3c5dc46e69a2",
+        "recordedAt": "2026-07-30T12:33:36.185Z"
+      },
+      "goalValue": 20,
+      "status": "active",
+      "startedAt": "2026-07-30T12:33:36.186Z"
+    }
+  ],
+  "performanceTests": [
+    {
+      "id": "test_d6004b38-29e2-4097-b4da-3c5dc46e69a2",
+      "exerciseId": "ex_a5ac2a8b-eb8b-4b10-8b71-946760121007",
+      "performedAt": "2026-07-30T12:33:36.185Z",
+      "protocolId": "single-set-max-v1",
+      "protocolVersion": 1,
+      "value": 5,
+      "unit": "reps"
+    }
+  ],
+  "planSlots": [
+    {
+      "id": "slot_afca58c6-d5b0-4c58-a06f-d104fb3a3f9f",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 1,
+      "week": 1,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 18
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 8,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 37,
+      "restSeconds": 30,
+      "status": "completed"
+    },
+    {
+      "id": "slot_01f55a82-a733-4388-ba62-c1bfb2e2581a",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 2,
+      "week": 1,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 19.910400903636546
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 10,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 40,
+      "restSeconds": 30,
+      "status": "completed"
+    },
+    {
+      "id": "slot_e6bf0029-69f5-4edd-b07b-abb2ed551d96",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 3,
+      "week": 1,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 22.02355911908506
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 8,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 35
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 10,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 35
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 8,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 35
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 35
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 11,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 44,
+      "restSeconds": 35,
+      "status": "completed"
+    },
+    {
+      "id": "slot_a94feb22-1de2-4d16-856c-eee469fa91d4",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 4,
+      "week": 2,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 24.360993965884674
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 40
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 11,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 40
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 40
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 8,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 40
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 12,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 49,
+      "restSeconds": 40,
+      "status": "completed"
+    },
+    {
+      "id": "slot_c1cc6cb5-9cd2-425d-bcf8-119929e1709a",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 5,
+      "week": 2,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 26.9465086817686
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 10,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 13,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 10,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 14,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 56,
+      "restSeconds": 45,
+      "status": "completed"
+    },
+    {
+      "id": "slot_5e39fd2c-fdf6-4b24-98c1-5d2b0139400c",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 6,
+      "week": 2,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 29.806432822629755
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 11,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 14,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 11,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 10,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 45
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 15,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 61,
+      "restSeconds": 45,
+      "status": "completed"
+    },
+    {
+      "id": "slot_041baeca-2fd9-4563-83ba-35a75e69d881",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 7,
+      "week": 3,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 32.969890389214974
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 12,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 50
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 15,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 50
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 12,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 50
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 11,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 50
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 17,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 67,
+      "restSeconds": 50,
+      "status": "completed"
+    },
+    {
+      "id": "slot_7036830a-321f-4b34-b408-4995167ebb02",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 8,
+      "week": 3,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 36.46909641101243
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 13,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 55
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 17,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 55
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 13,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 55
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 12,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 55
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 19,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 74,
+      "restSeconds": 55,
+      "status": "completed"
+    },
+    {
+      "id": "slot_0b135a4b-251b-4ee5-81ef-7a51873d46ac",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 9,
+      "week": 3,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 40.339685007590575
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 15,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 65
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 19,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 65
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 15,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 65
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 13,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 65
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 21,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 83,
+      "restSeconds": 65,
+      "status": "completed"
+    },
+    {
+      "id": "slot_28169da7-1f3a-42f3-853d-8aab739156e3",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 10,
+      "week": 4,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 44.62107226819695
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 17,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 70
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 21,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 70
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 17,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 70
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 15,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 70
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 23,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 93,
+      "restSeconds": 70,
+      "status": "completed"
+    },
+    {
+      "id": "slot_f6a3a45a-340d-4ce5-ab35-b4aebfd1f941",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 11,
+      "week": 4,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 49.35685764499669
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 18,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 75
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 23,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 75
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 18,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 75
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 16,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 75
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 25,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 100,
+      "restSeconds": 75,
+      "status": "completed"
+    },
+    {
+      "id": "slot_f445cb09-0a8d-4d57-b7c6-69d51acd7e91",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 12,
+      "week": 4,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 54.59526794753347
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 20,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 85
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 26,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 85
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 20,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 85
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 18,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 85
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 28,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 112,
+      "restSeconds": 85,
+      "status": "completed"
+    },
+    {
+      "id": "slot_fd0d42ab-5ccc-450b-be59-c4b001a9c7d2",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 13,
+      "week": 5,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 60.389648459825
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 22,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 90
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 28,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 90
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 22,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 90
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 20,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 90
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 31,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 123,
+      "restSeconds": 90,
+      "status": "completed"
+    },
+    {
+      "id": "slot_98d7e177-4052-4c13-87f0-f0788c99ed3c",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 14,
+      "week": 5,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 66.79900618137738
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 25,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 100
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 31,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 100
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 25,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 100
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 22,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 100
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 34,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 137,
+      "restSeconds": 100,
+      "status": "completed"
+    },
+    {
+      "id": "slot_c9ef30ee-81f1-482d-9012-35565386592e",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 15,
+      "week": 5,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 73.88861072420664
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 27,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 110
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 35,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 110
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 27,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 110
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 24,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 110
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 38,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 151,
+      "restSeconds": 110,
+      "status": "completed"
+    },
+    {
+      "id": "slot_15f1f296-4329-47e3-8063-b87a825e26ea",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 16,
+      "week": 6,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 81.73065898509407
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 30,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 125
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 38,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 125
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 30,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 125
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 27,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 125
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 42,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 167,
+      "restSeconds": 125,
+      "status": "completed"
+    },
+    {
+      "id": "slot_7c4b71dd-8be3-43bc-bebf-d9a56af75234",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 17,
+      "week": 6,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 90.40501036175708
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 33,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 135
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 42,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 135
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 33,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 135
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 30,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 135
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 46,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 184,
+      "restSeconds": 135,
+      "status": "completed"
+    },
+    {
+      "id": "slot_a605600f-3bad-45d7-b933-3562df749a40",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 18,
+      "week": 6,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:31:41.703Z",
+      "patternMetrics": {
+        "generationMax": 100
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 37,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 150
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 47,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 150
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 37,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 150
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 33,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 150
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 51,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 205,
+      "restSeconds": 150,
+      "status": "completed"
+    },
+    {
+      "id": "slot_30d2fca4-34d8-4aab-85bf-275ed9145869",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 19,
+      "week": 7,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-08-01T08:59:26.798Z",
+      "patternMetrics": {
+        "generationMax": 105.17287594885687
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 39,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 155
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 49,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 155
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 39,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 155
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 35,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 155
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 54,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 216,
+      "restSeconds": 155,
+      "status": "completed"
+    },
+    {
+      "id": "slot_2542d4bb-c4b2-43e2-bbcc-7b292c8276ff",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 20,
+      "week": 7,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-08-01T08:59:26.798Z",
+      "patternMetrics": {
+        "generationMax": 110.61333835353638
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 41,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 165
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 52,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 165
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 41,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 165
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 37,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 165
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 56,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 227,
+      "restSeconds": 165,
+      "status": "available"
+    },
+    {
+      "id": "slot_ac8863c3-b8d2-4c0d-b027-a9f564151fb1",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "ordinal": 21,
+      "week": 7,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-08-01T08:59:26.798Z",
+      "patternMetrics": {
+        "generationMax": 116.33522912945415
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 43,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 175
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 55,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 175
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 43,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 175
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 38,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 175
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 59,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 238,
+      "restSeconds": 175,
+      "status": "available"
+    },
+    {
+      "id": "slot_0bc55493-9703-4aa3-9827-b43f53163b94",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 1,
+      "week": 1,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 5
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 11,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_54a61ba8-a2a8-4422-8ab3-42974ab777dc",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 2,
+      "week": 1,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 5.424819568218186
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 12,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_0f5b72ee-1014-445e-b650-647911da47d1",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 3,
+      "week": 1,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 5.885733469544588
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 12,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_02f54c4d-df3c-43bf-9eee-dd5ee91ab6d7",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 4,
+      "week": 2,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 6.38580841978044
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 12,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_ec1f9420-b8e1-4fdb-a519-30676fab770a",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 5,
+      "week": 2,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 6.9283716949034755
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 15,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_6f96e309-0689-4cd7-95f2-4fb2e35b7a8d",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 6,
+      "week": 2,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 7.517033269280274
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 2,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 16,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_eeff7219-5aee-4af9-a14a-ec571eee199b",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 7,
+      "week": 3,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 8.155709834827752
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 17,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_312dc1a3-7874-44b0-8475-0710263389c5",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 8,
+      "week": 3,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 8.848650860936617
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 18,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_19c02a59-98ef-4906-82ff-59f20a1e573d",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 9,
+      "week": 3,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 9.600466868547933
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 21,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_445f744f-80af-4a9d-9505-962a8fc88e2e",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 10,
+      "week": 4,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 10.416160106505838
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 3,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 21,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_3d34633e-a60a-438c-887e-0c9fbe89b93a",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 11,
+      "week": 4,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 11.3011578342933
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 23,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_e216b561-106b-426b-ab62-64a3fe69d860",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 12,
+      "week": 4,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 12.26134843259931
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 26,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_48b631d6-a3c9-4f27-accb-c177f50ffe0d",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 13,
+      "week": 5,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 13.30312058198122
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 4,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 27,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_c6fccff8-b5e1-4ad7-afad-019effb1b0e4",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 14,
+      "week": 5,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 14.433405770299563
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 29,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_3c1c94ab-8a1b-40df-94a4-ef6a18e28fb2",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 15,
+      "week": 5,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 15.65972441175087
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 5,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 8,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 32,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_84f20846-b437-445d-b6ef-f92c33371eac",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 16,
+      "week": 6,
+      "day": 1,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 16.99023588435403
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 8,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 35,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_62e6cdf3-831f-4988-aca0-5907a2c2770a",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 17,
+      "week": 6,
+      "day": 2,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 18.433792818817306
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 6,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 38,
+      "restSeconds": 30,
+      "status": "available"
+    },
+    {
+      "id": "slot_d8101a34-75f7-42cf-8214-ba8155fafcc6",
+      "challengeId": "ch_7d055843-9677-41ef-a170-db03f1cfe905",
+      "ordinal": 18,
+      "week": 6,
+      "day": 3,
+      "patternId": "percentage-ramp",
+      "patternVersion": 1,
+      "generatedAt": "2026-07-30T12:33:36.186Z",
+      "patternMetrics": {
+        "generationMax": 20
+      },
+      "targets": [
+        {
+          "index": 1,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 2,
+          "targetKind": "reps",
+          "reps": 9,
+          "role": "big",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 3,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "medium",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 4,
+          "targetKind": "reps",
+          "reps": 7,
+          "role": "small",
+          "isAmrap": false,
+          "restAfterSeconds": 30
+        },
+        {
+          "index": 5,
+          "targetKind": "reps",
+          "reps": 10,
+          "role": "amrap",
+          "isAmrap": true,
+          "restAfterSeconds": 0
+        }
+      ],
+      "targetTotal": 40,
+      "restSeconds": 30,
+      "status": "available"
+    }
+  ],
+  "workouts": [
+    {
+      "id": "wo_231dd321-1e7e-481f-9576-98587efe8981",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_afca58c6-d5b0-4c58-a06f-d104fb3a3f9f",
+      "attemptNo": 1,
+      "performedAt": "2026-05-29T08:34:00",
+      "durationSeconds": 391,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 7,
+          "actual": 7
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 8,
+          "actual": 8
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 7,
+          "actual": 7
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 6,
+          "actual": 6
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 9,
+          "actual": 9
+        }
+      ],
+      "actualTotal": 37,
+      "adjustmentType": "none",
+      "effectiveTotal": 37,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 13,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_6bba4a94-a17f-4ad1-a9c7-4cb4c4c095ba",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_01f55a82-a733-4388-ba62-c1bfb2e2581a",
+      "attemptNo": 1,
+      "performedAt": "2026-05-31T09:25:00",
+      "durationSeconds": 359,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 7,
+          "actual": 7
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 9,
+          "actual": 9
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 7,
+          "actual": 7
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 7,
+          "actual": 6
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 10,
+          "actual": 10
+        }
+      ],
+      "actualTotal": 39,
+      "adjustmentType": "none",
+      "effectiveTotal": 40,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 10,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_3547a7cd-65e0-45b2-a32c-5002abdcbc88",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_e6bf0029-69f5-4edd-b07b-abb2ed551d96",
+      "attemptNo": 1,
+      "performedAt": "2026-06-02T09:45:00",
+      "durationSeconds": 338,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 8,
+          "actual": 7
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 10,
+          "actual": 10
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 8,
+          "actual": 7
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 7,
+          "actual": 7
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 11,
+          "actual": 10
+        }
+      ],
+      "actualTotal": 41,
+      "adjustmentType": "none",
+      "effectiveTotal": 44,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 13,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_3a9204f9-b5b5-42b5-bcbf-aca4af4e6766",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_a94feb22-1de2-4d16-856c-eee469fa91d4",
+      "attemptNo": 1,
+      "performedAt": "2026-06-05T10:00:00",
+      "durationSeconds": 413,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 9,
+          "actual": 8
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 11,
+          "actual": 10
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 9,
+          "actual": 8
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 8,
+          "actual": 7
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 12,
+          "actual": 11
+        }
+      ],
+      "actualTotal": 44,
+      "adjustmentType": "none",
+      "effectiveTotal": 49,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 9,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_3739384e-c01c-40c4-89ca-16b04b721c00",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_c1cc6cb5-9cd2-425d-bcf8-119929e1709a",
+      "attemptNo": 1,
+      "performedAt": "2026-06-07T09:18:00",
+      "durationSeconds": 425,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 10,
+          "actual": 9
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 13,
+          "actual": 11
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 10,
+          "actual": 9
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 9,
+          "actual": 8
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 14,
+          "actual": 12
+        }
+      ],
+      "actualTotal": 49,
+      "adjustmentType": "none",
+      "effectiveTotal": 56,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 13,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_0cf41758-59ff-4c68-9ee1-b697bc630013",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_5e39fd2c-fdf6-4b24-98c1-5d2b0139400c",
+      "attemptNo": 1,
+      "performedAt": "2026-06-09T10:15:00",
+      "durationSeconds": 458,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 11,
+          "actual": 10
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 14,
+          "actual": 13
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 11,
+          "actual": 10
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 10,
+          "actual": 9
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 15,
+          "actual": 13
+        }
+      ],
+      "actualTotal": 55,
+      "adjustmentType": "none",
+      "effectiveTotal": 61,
+      "outcome": "failed",
+      "kcal": {
+        "value": 16,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_89e6b010-d077-4874-80d5-0b1e0ae9cdd8",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_5e39fd2c-fdf6-4b24-98c1-5d2b0139400c",
+      "attemptNo": 2,
+      "performedAt": "2026-06-11T09:03:00",
+      "durationSeconds": 430,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 11,
+          "actual": 10
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 14,
+          "actual": 13
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 11,
+          "actual": 10
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 10,
+          "actual": 9
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 15,
+          "actual": 14
+        }
+      ],
+      "actualTotal": 56,
+      "adjustmentType": "none",
+      "effectiveTotal": 61,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 15,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_694be3ae-2e59-4a3e-84e8-5c9048c4b0ed",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_041baeca-2fd9-4563-83ba-35a75e69d881",
+      "attemptNo": 1,
+      "performedAt": "2026-06-14T08:54:00",
+      "durationSeconds": 486,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 12,
+          "actual": 11
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 15,
+          "actual": 14
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 12,
+          "actual": 11
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 11,
+          "actual": 10
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 17,
+          "actual": 16
+        }
+      ],
+      "actualTotal": 62,
+      "adjustmentType": "none",
+      "effectiveTotal": 67,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 20,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_0ac183b0-d548-4744-a783-fd8cbe762c77",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_7036830a-321f-4b34-b408-4995167ebb02",
+      "attemptNo": 1,
+      "performedAt": "2026-06-16T10:02:00",
+      "durationSeconds": 525,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 13,
+          "actual": 13
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 17,
+          "actual": 16
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 13,
+          "actual": 13
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 12,
+          "actual": 11
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 19,
+          "actual": 18
+        }
+      ],
+      "actualTotal": 71,
+      "adjustmentType": "none",
+      "effectiveTotal": 74,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 21,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_cffd056e-a6fc-4edf-98cb-cdc2eb1bfe4d",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_0b135a4b-251b-4ee5-81ef-7a51873d46ac",
+      "attemptNo": 1,
+      "performedAt": "2026-06-18T09:12:00",
+      "durationSeconds": 532,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 15,
+          "actual": 14
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 19,
+          "actual": 18
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 15,
+          "actual": 14
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 13,
+          "actual": 13
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 21,
+          "actual": 15
+        }
+      ],
+      "actualTotal": 74,
+      "adjustmentType": "none",
+      "effectiveTotal": 83,
+      "outcome": "failed",
+      "kcal": {
+        "value": 21,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_12544cc9-515d-4f38-a56a-af6da8d68566",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_0b135a4b-251b-4ee5-81ef-7a51873d46ac",
+      "attemptNo": 2,
+      "performedAt": "2026-06-21T08:13:00",
+      "durationSeconds": 528,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 15,
+          "actual": 14
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 19,
+          "actual": 18
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 15,
+          "actual": 14
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 13,
+          "actual": 13
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 21,
+          "actual": 20
+        }
+      ],
+      "actualTotal": 79,
+      "adjustmentType": "none",
+      "effectiveTotal": 83,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 25,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_0a7895e7-63d0-47a1-b689-a8e2c1035cc4",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_28169da7-1f3a-42f3-853d-8aab739156e3",
+      "attemptNo": 1,
+      "performedAt": "2026-06-23T09:39:00",
+      "durationSeconds": 587,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 17,
+          "actual": 16
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 21,
+          "actual": 20
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 17,
+          "actual": 16
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 15,
+          "actual": 14
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 23,
+          "actual": 18
+        }
+      ],
+      "actualTotal": 84,
+      "adjustmentType": "none",
+      "effectiveTotal": 93,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 25,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_fd629e7d-bbcc-4378-b90c-7ac7e7fb1113",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_f6a3a45a-340d-4ce5-ab35-b4aebfd1f941",
+      "attemptNo": 1,
+      "performedAt": "2026-06-25T09:09:00",
+      "durationSeconds": 646,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 23,
+          "actual": 23
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 18,
+          "actual": 16
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 16,
+          "actual": 15
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 25,
+          "actual": 20
+        }
+      ],
+      "actualTotal": 92,
+      "adjustmentType": "none",
+      "effectiveTotal": 100,
+      "outcome": "failed",
+      "kcal": {
+        "value": 27,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_4485796f-96e3-4452-a9e7-072198325202",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_f6a3a45a-340d-4ce5-ab35-b4aebfd1f941",
+      "attemptNo": 2,
+      "performedAt": "2026-06-27T09:11:00",
+      "durationSeconds": 618,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 23,
+          "actual": 23
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 16,
+          "actual": 15
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 25,
+          "actual": 24
+        }
+      ],
+      "actualTotal": 98,
+      "adjustmentType": "none",
+      "effectiveTotal": 100,
+      "outcome": "failed",
+      "kcal": {
+        "value": 27,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_7b2e352e-5e7b-4f53-95ca-5a36ee771d46",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_f6a3a45a-340d-4ce5-ab35-b4aebfd1f941",
+      "attemptNo": 3,
+      "performedAt": "2026-06-29T09:41:00",
+      "durationSeconds": 576,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 23,
+          "actual": 23
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 16,
+          "actual": 16
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 25,
+          "actual": 29
+        }
+      ],
+      "actualTotal": 104,
+      "adjustmentType": "none",
+      "effectiveTotal": 100,
+      "outcome": "failed",
+      "kcal": {
+        "value": 28,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_5816d842-33bd-482b-8e84-0213b0818cd0",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_f6a3a45a-340d-4ce5-ab35-b4aebfd1f941",
+      "attemptNo": 4,
+      "performedAt": "2026-07-01T09:44:00",
+      "durationSeconds": 630,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 23,
+          "actual": 23
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 16,
+          "actual": 16
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 25,
+          "actual": 33
+        }
+      ],
+      "actualTotal": 108,
+      "adjustmentType": "none",
+      "effectiveTotal": 100,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 26,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_9571fabc-0204-4d22-922e-ba65988722a2",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_f445cb09-0a8d-4d57-b7c6-69d51acd7e91",
+      "attemptNo": 1,
+      "performedAt": "2026-07-03T08:47:00",
+      "durationSeconds": 577,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 20,
+          "actual": 20
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 26,
+          "actual": 26
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 20,
+          "actual": 20
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 18,
+          "actual": 18
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 28,
+          "actual": 28
+        }
+      ],
+      "actualTotal": 112,
+      "adjustmentType": "none",
+      "effectiveTotal": 112,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 29,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_13803957-3b08-41b7-bc32-fa6711b5ad52",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_fd0d42ab-5ccc-450b-be59-c4b001a9c7d2",
+      "attemptNo": 1,
+      "performedAt": "2026-07-06T09:18:00",
+      "durationSeconds": 666,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 22,
+          "actual": 22
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 28,
+          "actual": 28
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 22,
+          "actual": 22
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 20,
+          "actual": 20
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 31,
+          "actual": 31
+        }
+      ],
+      "actualTotal": 123,
+      "adjustmentType": "none",
+      "effectiveTotal": 123,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 34,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_1de579ff-84ea-4994-a8ee-139cab244f95",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_98d7e177-4052-4c13-87f0-f0788c99ed3c",
+      "attemptNo": 1,
+      "performedAt": "2026-07-08T09:20:00",
+      "durationSeconds": 685,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 25,
+          "actual": 25
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 31,
+          "actual": 32
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 25,
+          "actual": 25
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 22,
+          "actual": 22
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 34,
+          "actual": 31
+        }
+      ],
+      "actualTotal": 135,
+      "adjustmentType": "none",
+      "effectiveTotal": 137,
+      "outcome": "failed",
+      "kcal": {
+        "value": 30,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_1dedb018-d910-45d9-9fba-edf46a2eb6e4",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_98d7e177-4052-4c13-87f0-f0788c99ed3c",
+      "attemptNo": 2,
+      "performedAt": "2026-07-10T08:34:00",
+      "durationSeconds": 673,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 25,
+          "actual": 25
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 31,
+          "actual": 32
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 25,
+          "actual": 25
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 22,
+          "actual": 20
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 34,
+          "actual": 28
+        }
+      ],
+      "actualTotal": 130,
+      "adjustmentType": "none",
+      "effectiveTotal": 137,
+      "outcome": "failed",
+      "kcal": {
+        "value": 36,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_acdafb47-13a3-4767-80bd-f3a34c938822",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_98d7e177-4052-4c13-87f0-f0788c99ed3c",
+      "attemptNo": 3,
+      "performedAt": "2026-07-12T13:05:00",
+      "durationSeconds": 692,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 25,
+          "actual": 25
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 31,
+          "actual": 32
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 25,
+          "actual": 25
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 22,
+          "actual": 22
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 34,
+          "actual": 34
+        }
+      ],
+      "actualTotal": 138,
+      "adjustmentType": "none",
+      "effectiveTotal": 137,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 34,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_e062a5ff-b9ee-492a-b566-e9ea1283ce58",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_c9ef30ee-81f1-482d-9012-35565386592e",
+      "attemptNo": 1,
+      "performedAt": "2026-07-14T10:45:00",
+      "durationSeconds": 710,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 27,
+          "actual": 28
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 35,
+          "actual": 35
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 27,
+          "actual": 28
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 24,
+          "actual": 25
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 38,
+          "actual": 37
+        }
+      ],
+      "actualTotal": 153,
+      "adjustmentType": "none",
+      "effectiveTotal": 151,
+      "outcome": "failed",
+      "kcal": {
+        "value": 42,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_11ee7600-ea05-45fb-b84a-0e352d3b730a",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_c9ef30ee-81f1-482d-9012-35565386592e",
+      "attemptNo": 2,
+      "performedAt": "2026-07-16T11:55:00",
+      "durationSeconds": 642,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 27,
+          "actual": 28
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 35,
+          "actual": 35
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 27,
+          "actual": 28
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 24,
+          "actual": 25
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 38,
+          "actual": 40
+        }
+      ],
+      "actualTotal": 156,
+      "adjustmentType": "none",
+      "effectiveTotal": 151,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 30,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_9a876198-b5b9-48bb-b60b-df7437f7993c",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_15f1f296-4329-47e3-8063-b87a825e26ea",
+      "attemptNo": 1,
+      "performedAt": "2026-07-20T11:40:00",
+      "durationSeconds": 745,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 30,
+          "actual": 30
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 38,
+          "actual": 38
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 30,
+          "actual": 30
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 27,
+          "actual": 27
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 42,
+          "actual": 42
+        }
+      ],
+      "actualTotal": 167,
+      "adjustmentType": "none",
+      "effectiveTotal": 167,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 38,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_f6683b1f-7422-48a4-b948-ccbcbbe7fd3d",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_7c4b71dd-8be3-43bc-bebf-d9a56af75234",
+      "attemptNo": 1,
+      "performedAt": "2026-07-22T10:33:00",
+      "durationSeconds": 735,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 42,
+          "actual": 43
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 30,
+          "actual": 30
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 46,
+          "actual": 35
+        }
+      ],
+      "actualTotal": 174,
+      "adjustmentType": "none",
+      "effectiveTotal": 184,
+      "outcome": "failed",
+      "kcal": {
+        "value": 36,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_154dff2c-aa02-476c-bc59-0acf21c90e46",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_7c4b71dd-8be3-43bc-bebf-d9a56af75234",
+      "attemptNo": 2,
+      "performedAt": "2026-07-24T11:18:00",
+      "durationSeconds": 724,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 42,
+          "actual": 43
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 30,
+          "actual": 30
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 46,
+          "actual": 43
+        }
+      ],
+      "actualTotal": 182,
+      "adjustmentType": "none",
+      "effectiveTotal": 184,
+      "outcome": "failed",
+      "kcal": {
+        "value": 34,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_9fd3cfbd-25f5-4709-a37a-ead2f7e17b17",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_7c4b71dd-8be3-43bc-bebf-d9a56af75234",
+      "attemptNo": 3,
+      "performedAt": "2026-07-26T19:44:00",
+      "durationSeconds": 722,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 42,
+          "actual": 43
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 30,
+          "actual": 30
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 46,
+          "actual": 43
+        }
+      ],
+      "actualTotal": 182,
+      "adjustmentType": "none",
+      "effectiveTotal": 184,
+      "outcome": "failed",
+      "kcal": {
+        "value": 33,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_adcbad6f-44d3-4203-83f0-4b6081b8b7c1",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_7c4b71dd-8be3-43bc-bebf-d9a56af75234",
+      "attemptNo": 4,
+      "performedAt": "2026-07-28T14:50:00",
+      "durationSeconds": 785,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 42,
+          "actual": 43
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 30,
+          "actual": 30
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 46,
+          "actual": 48
+        }
+      ],
+      "actualTotal": 187,
+      "adjustmentType": "none",
+      "effectiveTotal": 184,
+      "outcome": "completed_as_planned",
+      "kcal": {
+        "value": 37,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_c2b2c1b2-ffd6-45ae-ad7d-cb7cf36d5b02",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_a605600f-3bad-45d7-b933-3562df749a40",
+      "attemptNo": 1,
+      "performedAt": "2026-07-30T09:48:00",
+      "durationSeconds": 754,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 37,
+          "actual": 37
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 47,
+          "actual": 47
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 37,
+          "actual": 37
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 33,
+          "actual": 33
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 51,
+          "actual": 48
+        }
+      ],
+      "actualTotal": 202,
+      "adjustmentType": "none",
+      "effectiveTotal": 205,
+      "outcome": "failed",
+      "kcal": {
+        "value": 37,
+        "source": "external",
+        "estimatorVersion": 1
+      },
+      "importSource": "incumbent-csv-v1"
+    },
+    {
+      "id": "wo_de3b2403-5eb9-4d24-8a33-76f2c919fc8d",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_a605600f-3bad-45d7-b933-3562df749a40",
+      "attemptNo": 2,
+      "performedAt": "2026-08-01T08:24:59.584Z",
+      "durationSeconds": 756,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 37,
+          "actual": 37,
+          "startedAt": "2026-08-01T08:12:23.867Z",
+          "endedAt": "2026-08-01T08:13:04.817Z"
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 47,
+          "actual": 47,
+          "startedAt": "2026-08-01T08:15:35.152Z",
+          "endedAt": "2026-08-01T08:15:59.242Z"
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 37,
+          "actual": 37,
+          "startedAt": "2026-08-01T08:18:15.469Z",
+          "endedAt": "2026-08-01T08:18:50.984Z"
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 33,
+          "actual": 33,
+          "startedAt": "2026-08-01T08:21:06.571Z",
+          "endedAt": "2026-08-01T08:21:37.926Z"
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 51,
+          "actual": 53,
+          "startedAt": "2026-08-01T08:23:53.257Z",
+          "endedAt": "2026-08-01T08:24:43.619Z"
+        }
+      ],
+      "actualTotal": 207,
+      "adjustmentType": "none",
+      "effectiveTotal": 205,
+      "outcome": "completed_as_planned",
+      "evaluation": {
+        "satisfied": true,
+        "advances": true,
+        "reason": "207 of 205 reps — target met.",
+        "measured": {
+          "actualTotal": 207,
+          "effectiveTotal": 205,
+          "prescribedTotal": 205,
+          "shortfall": -2
+        }
+      },
+      "evaluationPolicyId": "total-reps-at-least-target",
+      "evaluationPolicyVersion": 1
+    },
+    {
+      "id": "wo_87a8c36e-2076-4cd8-a6a6-f6ac6b73b44e",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_30d2fca4-34d8-4aab-85bf-275ed9145869",
+      "attemptNo": 1,
+      "performedAt": "2026-08-04T09:12:34.839Z",
+      "durationSeconds": 892,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 39,
+          "actual": 39,
+          "startedAt": "2026-08-04T08:57:42.430Z",
+          "endedAt": "2026-08-04T08:58:27.039Z"
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 49,
+          "actual": 49,
+          "startedAt": "2026-08-04T09:00:48.297Z",
+          "endedAt": "2026-08-04T09:01:43.026Z"
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 39,
+          "actual": 39,
+          "startedAt": "2026-08-04T09:04:18.352Z",
+          "endedAt": "2026-08-04T09:05:05.495Z"
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 35,
+          "actual": 35,
+          "startedAt": "2026-08-04T09:07:40.834Z",
+          "endedAt": "2026-08-04T09:08:20.822Z"
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 54,
+          "actual": 45,
+          "startedAt": "2026-08-04T09:10:56.139Z",
+          "endedAt": "2026-08-04T09:11:45.341Z"
+        }
+      ],
+      "actualTotal": 207,
+      "adjustmentType": "none",
+      "effectiveTotal": 216,
+      "outcome": "failed",
+      "evaluation": {
+        "satisfied": false,
+        "advances": false,
+        "reason": "9 reps short of 216.",
+        "measured": {
+          "actualTotal": 207,
+          "effectiveTotal": 216,
+          "prescribedTotal": 216,
+          "shortfall": 9
+        }
+      },
+      "evaluationPolicyId": "total-reps-at-least-target",
+      "evaluationPolicyVersion": 1
+    },
+    {
+      "id": "wo_7f1cf8b8-c2a1-44fa-b464-9b36ae1dc0e7",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_30d2fca4-34d8-4aab-85bf-275ed9145869",
+      "attemptNo": 2,
+      "performedAt": "2026-08-06T16:54:04.891Z",
+      "durationSeconds": 832,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 39,
+          "actual": 39,
+          "startedAt": "2026-08-06T16:40:12.690Z",
+          "endedAt": "2026-08-06T16:40:56.089Z"
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 49,
+          "actual": 49,
+          "startedAt": "2026-08-06T16:43:28.575Z",
+          "endedAt": "2026-08-06T16:44:15.498Z"
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 39,
+          "actual": 39,
+          "startedAt": "2026-08-06T16:46:36.467Z",
+          "endedAt": "2026-08-06T16:47:17.904Z"
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 35,
+          "actual": 30,
+          "startedAt": "2026-08-06T16:49:38.587Z",
+          "endedAt": "2026-08-06T16:50:29.523Z"
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 54,
+          "actual": 40,
+          "startedAt": "2026-08-06T16:52:50.454Z",
+          "endedAt": "2026-08-06T16:53:41.053Z"
+        }
+      ],
+      "actualTotal": 197,
+      "adjustmentType": "none",
+      "effectiveTotal": 216,
+      "outcome": "failed",
+      "evaluation": {
+        "satisfied": false,
+        "advances": false,
+        "reason": "19 reps short of 216.",
+        "measured": {
+          "actualTotal": 197,
+          "effectiveTotal": 216,
+          "prescribedTotal": 216,
+          "shortfall": 19
+        }
+      },
+      "evaluationPolicyId": "total-reps-at-least-target",
+      "evaluationPolicyVersion": 1
+    },
+    {
+      "id": "wo_9eea8bd9-1574-4ad2-a613-c3ffe8df8da6",
+      "challengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "chainId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c",
+      "planSlotId": "slot_30d2fca4-34d8-4aab-85bf-275ed9145869",
+      "attemptNo": 3,
+      "performedAt": "2026-08-12T11:34:31.016Z",
+      "durationSeconds": 951,
+      "sets": [
+        {
+          "index": 1,
+          "effectiveTarget": 39,
+          "actual": 39,
+          "startedAt": "2026-08-12T11:18:40.023Z",
+          "endedAt": "2026-08-12T11:19:26.170Z"
+        },
+        {
+          "index": 2,
+          "effectiveTarget": 49,
+          "actual": 49,
+          "startedAt": "2026-08-12T11:22:01.398Z",
+          "endedAt": "2026-08-12T11:23:01.845Z"
+        },
+        {
+          "index": 3,
+          "effectiveTarget": 39,
+          "actual": 39,
+          "startedAt": "2026-08-12T11:25:37.062Z",
+          "endedAt": "2026-08-12T11:26:25.277Z"
+        },
+        {
+          "index": 4,
+          "effectiveTarget": 35,
+          "actual": 39,
+          "startedAt": "2026-08-12T11:29:00.487Z",
+          "endedAt": "2026-08-12T11:29:50.996Z"
+        },
+        {
+          "index": 5,
+          "effectiveTarget": 54,
+          "actual": 52,
+          "startedAt": "2026-08-12T11:32:26.205Z",
+          "endedAt": "2026-08-12T11:34:28.349Z"
+        }
+      ],
+      "actualTotal": 218,
+      "adjustmentType": "none",
+      "effectiveTotal": 216,
+      "outcome": "completed_as_planned",
+      "evaluation": {
+        "satisfied": true,
+        "advances": true,
+        "reason": "218 of 216 reps — target met.",
+        "measured": {
+          "actualTotal": 218,
+          "effectiveTotal": 216,
+          "prescribedTotal": 216,
+          "shortfall": -2
+        }
+      },
+      "evaluationPolicyId": "total-reps-at-least-target",
+      "evaluationPolicyVersion": 1
+    }
+  ],
+  "settings": {
+    "id": "settings",
+    "kcalCoefficient": 0.003,
+    "lastBackupAt": "2026-07-30T14:36:44.783Z",
+    "selectedChallengeId": "ch_14f6e84f-2f67-463d-8a02-b18a7e7fba9c"
+  }
+}

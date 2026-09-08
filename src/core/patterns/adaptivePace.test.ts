@@ -37,9 +37,11 @@ const cappedTargetAt = (params: PercentageRampParams, units: number): number =>
   cappedSum(targetsAtUnits(params, units));
 
 /** An athlete who does exactly the prescribed sets, first time. */
-const exactly = (params: PercentageRampParams, units: number): SessionObservation => ({
-  cappedActual: cappedTargetAt(params, units),
-  cappedTarget: cappedTargetAt(params, units),
+/** An athlete who does exactly the prescribed sets, first time, at the state's next session. */
+const exactly = (params: PercentageRampParams, state: AdaptivePaceState): SessionObservation => ({
+  ordinal: state.throughOrdinal + 1,
+  cappedActual: cappedTargetAt(params, state.units),
+  cappedTarget: cappedTargetAt(params, state.units),
   attempts: 1,
   passed: true,
 });
@@ -88,7 +90,7 @@ describe('INVARIANT: an athlete exactly on the curve gets the fixed plan, rep fo
 
     for (let ordinal = 1; ordinal <= totals.length; ordinal += 1) {
       produced.push(totalAtUnits(params, state.units));
-      state = observeSession(params, state, exactly(params, state.units));
+      state = observeSession(params, state, exactly(params, state));
     }
 
     expect(produced).toEqual(totals);
@@ -98,7 +100,7 @@ describe('INVARIANT: an athlete exactly on the curve gets the fixed plan, rep fo
   it('does not accelerate on a bare pass, because meeting +10.6% proves nothing spare', () => {
     const params = base();
     let state = seedAdaptiveState(params, 1);
-    for (let i = 0; i < 8; i += 1) state = observeSession(params, state, exactly(params, state.units));
+    for (let i = 0; i < 8; i += 1) state = observeSession(params, state, exactly(params, state));
     expect(state.step).toBeCloseTo(1, 10);
   });
 });
@@ -111,6 +113,7 @@ describe('INVARIANT: a prescription never goes down', () => {
 
     for (let i = 0; i < 5; i += 1) {
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: Math.round(cappedTargetAt(params, state.units) * 0.7),
         cappedTarget: cappedTargetAt(params, state.units),
         attempts: i + 1,
@@ -133,6 +136,7 @@ describe('INVARIANT: a prescription never goes down', () => {
       const capped = cappedTargetAt(params, state.units);
       const did = Math.round(capped * swing);
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: did,
         cappedTarget: capped,
         attempts: 1,
@@ -149,7 +153,8 @@ describe('INVARIANT: switching to adaptive never makes the next session harder',
 
     for (let ordinal = 1; ordinal <= totals.length; ordinal += 1) {
       // Someone who has been smashing it: three sessions at 150% of the prescribed work.
-      const history: SessionObservation[] = [1, 2, 3].map(() => ({
+      const history: SessionObservation[] = [1, 2, 3].map((n) => ({
+        ordinal: n,
         cappedActual: 300,
         cappedTarget: 200,
         attempts: 1,
@@ -166,7 +171,7 @@ describe('the controller reads struggle without winding itself up', () => {
   it('eases the step when a session takes several attempts', () => {
     const params = base();
     let state = seedAdaptiveState(params, 8);
-    state = observeSession(params, state, { ...exactly(params, state.units), attempts: 4 });
+    state = observeSession(params, state, { ...exactly(params, state), attempts: 4 });
     expect(state.step).toBeLessThan(1);
   });
 
@@ -176,6 +181,7 @@ describe('the controller reads struggle without winding itself up', () => {
     for (let i = 0; i < OBSERVATION_WINDOW; i += 1) {
       const capped = cappedTargetAt(params, state.units);
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: Math.round(capped * 0.93),
         cappedTarget: capped,
         attempts: 1,
@@ -191,9 +197,10 @@ describe('the controller reads struggle without winding itself up', () => {
     let comfy = seedAdaptiveState(params, 8);
 
     for (let i = 0; i < OBSERVATION_WINDOW; i += 1) {
-      tight = observeSession(params, tight, exactly(params, tight.units));
+      tight = observeSession(params, tight, exactly(params, tight));
       const capped = cappedTargetAt(params, comfy.units);
       comfy = observeSession(params, comfy, {
+        ordinal: comfy.throughOrdinal + 1,
         cappedActual: Math.round(capped * (COMFORT_MARGIN + 0.05)),
         cappedTarget: capped,
         attempts: 1,
@@ -209,6 +216,7 @@ describe('the controller reads struggle without winding itself up', () => {
     let state = seedAdaptiveState(params, 6);
     for (let i = 0; i < 40; i += 1) {
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: 1,
         cappedTarget: cappedTargetAt(params, state.units),
         attempts: 3,
@@ -219,6 +227,7 @@ describe('the controller reads struggle without winding itself up', () => {
     for (let i = 0; i < 60; i += 1) {
       const capped = cappedTargetAt(params, state.units);
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: capped * 5,
         cappedTarget: capped,
         attempts: 1,
@@ -232,7 +241,7 @@ describe('the controller reads struggle without winding itself up', () => {
     const params = base();
     let state = seedAdaptiveState(params, 4);
     for (let i = 0; i < 10; i += 1) {
-      state = observeSession(params, state, exactly(params, state.units));
+      state = observeSession(params, state, exactly(params, state));
       expect(state.recent.length).toBeLessThanOrEqual(OBSERVATION_WINDOW);
     }
   });
@@ -240,14 +249,14 @@ describe('the controller reads struggle without winding itself up', () => {
 
 describe('the forecast says where the block lands, not where the goal is', () => {
   it('projects the remaining sessions at the current step', () => {
-    const state: AdaptivePaceState = { units: 9, step: 0.5, recent: [1] };
+    const state: AdaptivePaceState = { units: 9, step: 0.5, recent: [1], throughOrdinal: 0 };
     expect(projectUnits(state, 4)).toEqual([9, 9.5, 10, 10.5]);
   });
 
   it('reports a lower finish for a slower athlete, and how far the goal has moved', () => {
     const params = base();
-    const slow = forecastBlock(params, { units: 9, step: 0.4, recent: [0.95] }, 9);
-    const onPace = forecastBlock(params, { units: 9, step: 1.0, recent: [1] }, 9);
+    const slow = forecastBlock(params, { units: 9, step: 0.4, recent: [0.95], throughOrdinal: 0 }, 9);
+    const onPace = forecastBlock(params, { units: 9, step: 1.0, recent: [1], throughOrdinal: 0 }, 9);
 
     expect(onPace.finalTotal).toBe(205);
     expect(slow.finalTotal).toBeLessThan(onPace.finalTotal);
@@ -256,7 +265,7 @@ describe('the forecast says where the block lands, not where the goal is', () =>
 
   it('offers no sessions-to-goal once the goal is behind you', () => {
     const params = base();
-    const past = forecastBlock(params, { units: 18, step: 0.5, recent: [1] }, 3);
+    const past = forecastBlock(params, { units: 18, step: 0.5, recent: [1], throughOrdinal: 0 }, 3);
     expect(past.sessionsToGoal).toBeUndefined();
     expect(past.finalTotal).toBeGreaterThan(205);
   });
@@ -319,6 +328,7 @@ describe('a real eight-year history of failing this challenge', () => {
       worst = Math.max(worst, target - totalOf(sets));
       const passed = totalOf(sets) >= target;
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: cappedOf(sets),
         cappedTarget: cappedTargetAt(params, state.units),
         attempts,
@@ -358,6 +368,7 @@ describe('a real eight-year history of failing this challenge', () => {
       const target = totalAtUnits(params, state.units);
       const passed = totalOf(sets) >= target;
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: cappedOf(sets),
         cappedTarget: cappedTargetAt(params, state.units),
         attempts,
@@ -389,6 +400,7 @@ describe('a real eight-year history of failing this challenge', () => {
       worstSlack = Math.max(worstSlack, totalOf(sets) - target);
       const passed = totalOf(sets) >= target;
       state = observeSession(params, state, {
+        ordinal: state.throughOrdinal + 1,
         cappedActual: cappedOf(sets),
         cappedTarget: cappedTargetAt(params, state.units),
         attempts,
