@@ -694,6 +694,158 @@ function extendChallenge(
 }
 
 /**
+ * Re-pace the sessions ahead. Adaptive mode's only write.
+ *
+ * `POST /api/challenges/:id/pace` replaces each *available* slot with a re-priced one carrying the
+ * same ordinal, week and day. It is the endpoint `assertFreshPlan` predicted: superseding a slot
+ * is a different operation from creating a plan, and it needs to carry the slot it replaces.
+ *
+ * The bounds are the same ones `/extend` established, for the same reason: this writes to a
+ * challenge with months of history behind it.
+ *
+ *   - **A performed session is untouchable.** Only a slot that is currently `available` may be
+ *     superseded. `completed`, `attempted`, `superseded` and `cancelled` are all refused, so a day
+ *     already trained can never be re-priced underneath the workout that references it.
+ *   - **The plan does not change shape.** Each arriving slot must supersede exactly one existing
+ *     slot and carry that slot's ordinal, week and day. Adaptive mode moves the *load* of the
+ *     sessions ahead, never how many there are. Adding sessions is `/extend` and stays separate.
+ *   - **Only the pacing state may move on the challenge.** Everything else, `patternParams`
+ *     included, must arrive byte-identical.
+ *   - **An ended challenge is refused**, before any write.
+ *
+ * One transaction, one revision bump, the revision checked inside it, as everywhere else.
+ */
+function repaceChallenge(
+  ctx: ApiContext,
+  challengeId: string,
+  body: Record<string, unknown>,
+): CommandResult {
+  requireKeys(body, ['expectedRevision', 'challenge', 'slots'], 'POST /api/challenges/:id/pace');
+  const expected = requireExpectedRevision(body);
+  const challenge = validateRecord<ChallengeRecord>(
+    body['challenge'],
+    CHALLENGE_FIELDS,
+    'challenge',
+  );
+  const slots = requireArray(body, 'slots', 'POST /api/challenges/:id/pace').map((slot, index) =>
+    validateRecord<PlanSlotRecord>(slot, PLAN_SLOT_FIELDS, `slots[${String(index)}]`),
+  );
+
+  if (challenge.id !== challengeId) {
+    throw new HttpError(
+      422,
+      'challenge_mismatch',
+      `The body describes challenge "${challenge.id}" but the route names "${challengeId}".`,
+    );
+  }
+  if (slots.length === 0) {
+    throw new HttpError(
+      422,
+      'nothing_to_repace',
+      'A re-pace must replace at least one session. Nothing has been changed.',
+    );
+  }
+  assertSlotsBelongTo(slots, challenge);
+
+  const supersededIds = new Set<string>();
+  const arrivingIds = new Set<string>();
+  for (const slot of slots) {
+    if (slot.status !== 'available') {
+      throw new HttpError(
+        422,
+        'slot_not_fresh',
+        `Plan slot "${slot.id}" arrives as "${slot.status}". A re-paced session is available.`,
+      );
+    }
+    if (slot.supersedesId === undefined) {
+      throw new HttpError(
+        422,
+        'slot_supersedes_nothing',
+        `Plan slot "${slot.id}" replaces no existing slot. A re-pace rewrites the sessions ahead; ` +
+          'appending new ones is /extend.',
+      );
+    }
+    if (supersededIds.has(slot.supersedesId)) {
+      throw new HttpError(
+        422,
+        'duplicate_supersede',
+        `Two arriving slots both replace "${slot.supersedesId}". Nothing has been changed.`,
+      );
+    }
+    if (arrivingIds.has(slot.id)) {
+      throw new HttpError(422, 'duplicate_slot', `Slot "${slot.id}" arrives twice.`);
+    }
+    supersededIds.add(slot.supersedesId);
+    arrivingIds.add(slot.id);
+  }
+
+  return inWriteTransaction(ctx.db, (): CommandResult => {
+    checkRevision(ctx.db, expected);
+    const stored = findRecord(ctx.db, CHALLENGES, challengeId);
+    if (stored === undefined) {
+      throw new HttpError(404, 'unknown_challenge', `No challenge "${challengeId}" exists.`);
+    }
+    if (stored.status === 'ended') {
+      throw new HttpError(
+        409,
+        'already_ended',
+        `Challenge "${challengeId}" has ended and cannot be re-paced. Nothing has been changed.`,
+      );
+    }
+    assertOnlyThePaceMoved(stored, challenge);
+
+    for (const slot of slots) {
+      const target = findRecord(ctx.db, PLAN_SLOTS, slot.supersedesId ?? '');
+      if (target === undefined) {
+        throw new HttpError(
+          409,
+          'unknown_slot',
+          `No plan slot "${String(slot.supersedesId)}" exists. The plan may have changed on ` +
+            'another device. Nothing has been changed.',
+        );
+      }
+      if (target.challengeId !== challengeId) {
+        throw new HttpError(
+          422,
+          'slot_challenge_mismatch',
+          `Plan slot "${target.id}" belongs to another challenge. Nothing has been changed.`,
+        );
+      }
+      // The whole safety property of this endpoint, in one condition.
+      if (target.status !== 'available') {
+        throw new HttpError(
+          409,
+          'session_already_started',
+          `Session ${String(target.ordinal)} is "${target.status}" and cannot be re-priced. ` +
+            'A day you have already trained is never rewritten. Nothing has been changed.',
+        );
+      }
+      if (
+        slot.ordinal !== target.ordinal ||
+        slot.week !== target.week ||
+        slot.day !== target.day
+      ) {
+        throw new HttpError(
+          422,
+          'slot_moved',
+          `Slot "${slot.id}" would move session ${String(target.ordinal)} to ` +
+            `${String(slot.ordinal)}. Re-pacing changes what a session asks for, never which ` +
+            'session it is. Nothing has been changed.',
+        );
+      }
+
+      const retired: PlanSlotRecord = { ...target, status: 'superseded' };
+      updateRecord(ctx.db, PLAN_SLOTS, retired);
+      insertOrVerify(ctx.db, PLAN_SLOTS, slot);
+    }
+
+    updateRecord(ctx.db, CHALLENGES, challenge);
+    bumpRevision(ctx.db, isoNow(ctx));
+    return { challengeId, repaced: slots.length, snapshot: readSnapshot(ctx.db) };
+  });
+}
+
+/**
  * `repo.ts:201` — a whole import, or nothing.
  *
  * Its workouts may legitimately carry no `planSlotId` and their own `attemptNo`: a session
@@ -939,6 +1091,43 @@ function extraSessionsOf(challenge: ChallengeRecord, which: string): number {
     );
   }
   return value;
+}
+
+/** The one key adaptive pacing owns. Everything else in `patternParams` is frozen. */
+const PACE_PARAM_KEY = 'adaptivePace';
+
+/**
+ * A re-pace may move the pacing state and nothing else, anywhere.
+ *
+ * Same shape as `assertOnlyTheExtensionMoved` and for the same reason: `patternParams` is opaque
+ * to this server, but "opaque" cannot mean "replaceable", because the fields inside it are what a
+ * plan regenerates from. `extraSessions` and `extensionDamping` are frozen here too — extending a
+ * plan and re-pacing it are separate commands and neither may quietly perform the other.
+ */
+function assertOnlyThePaceMoved(stored: ChallengeRecord, submitted: ChallengeRecord): void {
+  const withoutParams = (record: ChallengeRecord): ChallengeRecord => ({
+    ...record,
+    patternParams: {},
+  });
+  if (!canonicallyEqual(withoutParams(stored), withoutParams(submitted))) {
+    throw new HttpError(
+      409,
+      'challenge_changed',
+      `Re-pacing challenge "${stored.id}" may only record the new pace, and this command changes ` +
+        'more than that. Nothing has been changed.',
+    );
+  }
+
+  const frozen = (params: Record<string, unknown>): Record<string, unknown> =>
+    Object.fromEntries(Object.entries(params).filter(([key]) => key !== PACE_PARAM_KEY));
+  if (!canonicallyEqual(frozen(stored.patternParams), frozen(submitted.patternParams))) {
+    throw new HttpError(
+      409,
+      'pattern_params_changed',
+      `Re-pacing challenge "${stored.id}" may not change how its plan is generated — only how ` +
+        'hard the sessions ahead are. Nothing has been changed.',
+    );
+  }
 }
 
 /**
@@ -1220,6 +1409,11 @@ export async function handleApi(
         if (method !== 'POST') throw methodNotAllowed(method, route);
         const body = asObject(await readJsonBody(req, MAX_BODY_BYTES), 'The request body');
         return sendJson(res, 200, endChallenge(ctx, rest[1] ?? '', body));
+      }
+      if (rest.length === 3 && rest[2] === 'pace') {
+        if (method !== 'POST') throw methodNotAllowed(method, route);
+        const body = asObject(await readJsonBody(req, MAX_BODY_BYTES), 'The request body');
+        return sendJson(res, 200, repaceChallenge(ctx, rest[1] ?? '', body));
       }
       if (rest.length === 3 && rest[2] === 'extend') {
         if (method !== 'POST') throw methodNotAllowed(method, route);
